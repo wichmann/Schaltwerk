@@ -34,6 +34,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 
@@ -277,6 +278,12 @@ public class SchaltwerkFrame extends JFrame {
 
 	public static void main(String[] args) {
 
-		new SchaltwerkFrame().setVisible(true);
+		SwingUtilities.invokeLater(new Runnable() {
+
+			@Override
+			public void run() {
+				new SchaltwerkFrame().setVisible(true);
+			}
+		});
 	}
 }
