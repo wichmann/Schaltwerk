@@ -1,0 +1,35 @@
+Schaltwerk - A free and extensible digital simulator
+====================================================
+date:    @date@
+version: @version@
+
+
+DESCRIPTION
+-----------
+Schaltwerk is an open-source simulator for digital logical circuits.
+
+
+LICENSE
+-------
+Schaltwerk is released under the GNU General Public License v2 or newer.
+
+
+REQUIREMENTS
+------------
+Schaltwerk requires Java SE 7 or later.
+
+
+PROBLEMS
+--------
+Please go to http://www.freenono.org/ to submit bug reports, request new 
+features, etc.
+
+
+THIRD PARTY SOFTWARE
+--------------------
+FreeNono includes parts of or links with the following software packages and 
+programs, so give the developers lots of thanks sometime! 
+
+* slf4j, logback
+* Clipart from opencliparts.org:
+  http://openclipart.org/detail/21160/metal-steampunk-by-rg1024-21160
