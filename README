@@ -21,13 +21,13 @@ Schaltwerk requires Java SE 7 or later.
 
 PROBLEMS
 --------
-Please go to http://www.freenono.org/ to submit bug reports, request new 
+Please go to http://www.github.com/wichmann/Schaltwerk/ to submit bug reports, request new 
 features, etc.
 
 
 THIRD PARTY SOFTWARE
 --------------------
-FreeNono includes parts of or links with the following software packages and 
+Schaltwerk includes parts of or links with the following software packages and 
 programs, so give the developers lots of thanks sometime! 
 
 * slf4j, logback
