@@ -38,6 +38,7 @@ public abstract class Block {
 	private boolean alreadyEvaluated = false;
 
 	private String blockID = "";
+	private Blocks blockType;
 
 	/**
 	 * Initializes a block with number of input and output signals. Signal ids
@@ -203,6 +204,27 @@ public abstract class Block {
 	private final void setBlockID(String blockID) {
 
 		this.blockID = blockID;
+	}
+
+	/**
+	 * Gets block type for this block.
+	 * 
+	 * @return block type
+	 */
+	public Blocks getBlockType() {
+
+		return blockType;
+	}
+
+	/**
+	 * Sets block type for this block.
+	 * 
+	 * @param blockType
+	 *            block type to be set
+	 */
+	protected void setBlockType(Blocks blockType) {
+
+		this.blockType = blockType;
 	}
 
 	/**

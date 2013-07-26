@@ -74,6 +74,8 @@ public final class BlockFactory {
 		nor2.output("1").connectTo(circuit.internalOutput("Q"));
 		nor1.output("1").connectTo(circuit.internalOutput("~Q"));
 
+		circuit.setBlockType(Blocks.RS_FLIPFLOP);
+
 		return circuit;
 	}
 

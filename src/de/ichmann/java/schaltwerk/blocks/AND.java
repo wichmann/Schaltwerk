@@ -40,6 +40,8 @@ public class AND extends BaseBlock {
 	public AND(int inputs) {
 
 		super(generateBlockID(), inputs);
+
+		setBlockType(Blocks.AND);
 	}
 
 	/**

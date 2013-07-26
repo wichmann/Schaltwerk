@@ -40,6 +40,8 @@ public class NOR extends BaseBlock {
 	public NOR(int inputs) {
 
 		super(generateBlockID(), inputs);
+
+		setBlockType(Blocks.NOR);
 	}
 
 	/**

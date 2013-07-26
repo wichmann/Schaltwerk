@@ -40,6 +40,8 @@ public class OR extends BaseBlock {
 	public OR(int inputs) {
 
 		super(generateBlockID(), inputs);
+
+		setBlockType(Blocks.OR);
 	}
 
 	/**

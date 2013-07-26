@@ -40,6 +40,8 @@ public class NAND extends BaseBlock {
 	public NAND(int inputs) {
 
 		super(generateBlockID(), inputs);
+
+		setBlockType(Blocks.NAND);
 	}
 
 	/**

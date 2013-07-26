@@ -69,7 +69,8 @@ public class BlockView {
 	private static final int HEADER_GAP = 50;
 	private static final int SIGNAL_GAP = 25;
 	private static final int WIDTH_GAP = 40 + INTERNAL_PADDING + PADDING;
-	private static final int RADIUS = 15;
+	private static final int RADIUS_SIGNAL = 15;
+	private static final int RADIUS_INVERTED = 5;
 
 	private Rectangle blockBounds = new Rectangle();
 	private final List<SignalShape> signalShapes = new ArrayList<SignalShape>();
@@ -138,7 +139,7 @@ public class BlockView {
 
 			Point p = null;
 
-			p = new Point((int) x, (int) y - RADIUS);
+			p = new Point((int) x, (int) y - RADIUS_SIGNAL);
 
 			assert p != null;
 			return p;
@@ -218,11 +219,13 @@ public class BlockView {
 		g2d.setRenderingHint(RenderingHints.KEY_RENDERING,
 				RenderingHints.VALUE_RENDER_SPEED);
 
+		// paint background
 		g2d.setColor(ColorFactory.getInstance().getBackgroundColor());
 		g2d.fillRect(blockBounds.x, blockBounds.y, blockViewSize.width,
 				blockViewSize.height);
 		g2d.setColor(ColorFactory.getInstance().getForegroundColor());
 
+		// highlight block
 		if (highlighted) {
 			g2d.setColor(highlightColor);
 			g2d.fillRect(blockBounds.x, blockBounds.y, blockViewSize.width,
@@ -230,6 +233,7 @@ public class BlockView {
 			g2d.setColor(ColorFactory.getInstance().getForegroundColor());
 		}
 
+		// paint block border
 		g2d.setFont(FontFactory.getInstance().createTextFont());
 		g2d.drawRect(blockBounds.x + PADDING, blockBounds.y + PADDING,
 				blockViewSize.width - PADDING - PADDING, blockViewSize.height
@@ -265,9 +269,24 @@ public class BlockView {
 			g2d.drawLine(blockBounds.x + blockViewSize.width,
 					blockBounds.y + y, blockBounds.x + blockViewSize.width
 							- PADDING, blockBounds.y + y);
+
+			// paint inverter circle for outputs starting with tilde
+			if (output.startsWith("~")) {
+
+				g2d.setColor(ColorFactory.getInstance().getBackgroundColor());
+				g2d.fillOval(blockBounds.x + blockViewSize.width - PADDING,
+						blockBounds.y + y - RADIUS_INVERTED / 2,
+						RADIUS_INVERTED, RADIUS_INVERTED);
+				g2d.setColor(ColorFactory.getInstance().getForegroundColor());
+				g2d.drawOval(blockBounds.x + blockViewSize.width - PADDING,
+						blockBounds.y + y - RADIUS_INVERTED / 2,
+						RADIUS_INVERTED, RADIUS_INVERTED);
+			}
+
 			y += SIGNAL_GAP;
 		}
 
+		// paint border different when selected
 		if (selected) {
 			g2d.setColor(ColorFactory.getInstance().getHighlightColor());
 			g2d.drawRect(blockBounds.x + PADDING, blockBounds.y + PADDING,
@@ -397,20 +416,20 @@ public class BlockView {
 		// add signal shapes for inputs
 		String[] inputList = getModel().inputList();
 		x = blockBounds.x;
-		y = blockBounds.y + HEADER_GAP + RADIUS;
+		y = blockBounds.y + HEADER_GAP + RADIUS_SIGNAL;
 		for (String input : inputList) {
-			signalShapes.add(new SignalShape(x, y, RADIUS, RADIUS, getModel()
-					.input(input)));
+			signalShapes.add(new SignalShape(x, y, RADIUS_SIGNAL,
+					RADIUS_SIGNAL, getModel().input(input)));
 			y += SIGNAL_GAP;
 		}
 
 		// add signal shapes for outputs
 		String[] outputList = getModel().outputList();
 		x = blockBounds.x + blockBounds.width;
-		y = blockBounds.y + HEADER_GAP + RADIUS;
+		y = blockBounds.y + HEADER_GAP + RADIUS_SIGNAL;
 		for (String output : outputList) {
-			signalShapes.add(new SignalShape(x, y, RADIUS, RADIUS, getModel()
-					.output(output)));
+			signalShapes.add(new SignalShape(x, y, RADIUS_SIGNAL,
+					RADIUS_SIGNAL, getModel().output(output)));
 			y += SIGNAL_GAP;
 		}
 
