@@ -69,7 +69,7 @@ public class BlockView {
 	private static final int HEADER_GAP = 50;
 	private static final int SIGNAL_GAP = 25;
 	private static final int WIDTH_GAP = 40 + INTERNAL_PADDING + PADDING;
-	private static final int RADIUS = 5;
+	private static final int RADIUS = 15;
 
 	private Rectangle blockBounds = new Rectangle();
 	private final List<SignalShape> signalShapes = new ArrayList<SignalShape>();
@@ -82,6 +82,8 @@ public class BlockView {
 	/**
 	 * Stores a shape describing a signal (input or output of a block). It is
 	 * used to determine where a block can be connected to another.
+	 * 
+	 * This component is the view/controller for a underlying signal.
 	 * 
 	 * @author Christian Wichmann
 	 */
@@ -126,6 +128,21 @@ public class BlockView {
 			return attachedSignal;
 		}
 
+		/**
+		 * Returns a point for this signal. The point is the center of the
+		 * signal.
+		 * 
+		 * @return center point for given signal
+		 */
+		public Point pointForSignal() {
+
+			Point p = null;
+
+			p = new Point((int) x, (int) y - RADIUS);
+
+			assert p != null;
+			return p;
+		}
 	}
 
 	/**
@@ -317,7 +334,6 @@ public class BlockView {
 		}
 
 		blockBounds.setBounds(0, 0, blockViewSize.width, blockViewSize.height);
-		moveBlockView(new Point(50, 50));
 
 		return blockViewSize;
 	}
@@ -380,8 +396,8 @@ public class BlockView {
 
 		// add signal shapes for inputs
 		String[] inputList = getModel().inputList();
-		x = blockBounds.x + RADIUS;
-		y = blockBounds.y + HEADER_GAP;
+		x = blockBounds.x;
+		y = blockBounds.y + HEADER_GAP + RADIUS;
 		for (String input : inputList) {
 			signalShapes.add(new SignalShape(x, y, RADIUS, RADIUS, getModel()
 					.input(input)));
@@ -390,8 +406,8 @@ public class BlockView {
 
 		// add signal shapes for outputs
 		String[] outputList = getModel().outputList();
-		x = blockBounds.x + blockBounds.width - RADIUS;
-		y = blockBounds.y + HEADER_GAP;
+		x = blockBounds.x + blockBounds.width;
+		y = blockBounds.y + HEADER_GAP + RADIUS;
 		for (String output : outputList) {
 			signalShapes.add(new SignalShape(x, y, RADIUS, RADIUS, getModel()
 					.output(output)));
@@ -436,6 +452,11 @@ public class BlockView {
 		// TODO check bounds?!
 		blockBounds.x += delta.x;
 		blockBounds.y += delta.y;
+
+		for (SignalShape s : signalShapes) {
+			s.x += delta.x;
+			s.y += delta.y;
+		}
 	}
 
 	/**
@@ -446,11 +467,11 @@ public class BlockView {
 	 *            point to check for
 	 * @return signals shape for given point or null when point is not a signal
 	 */
-	public Signal checkIfPointIsSignal(final Point p) {
+	public SignalShape checkIfPointIsSignal(final Point p) {
 
 		for (SignalShape s : signalShapes) {
 			if (s.contains(p)) {
-				return s.getAttachedSignal();
+				return s;
 			}
 		}
 		return null;

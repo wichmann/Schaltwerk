@@ -17,6 +17,7 @@
  *****************************************************************************/
 package de.ichmann.java.schaltwerk.gui;
 
+import java.awt.Cursor;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
@@ -38,6 +39,9 @@ import org.slf4j.LoggerFactory;
 
 import de.ichmann.java.schaltwerk.blocks.Block;
 import de.ichmann.java.schaltwerk.blocks.BlockFactory;
+import de.ichmann.java.schaltwerk.blocks.Input;
+import de.ichmann.java.schaltwerk.blocks.Output;
+import de.ichmann.java.schaltwerk.gui.BlockView.SignalShape;
 
 /**
  * Main panel for Schaltwerk which paints a circuit into given area. For
@@ -63,13 +67,82 @@ public class CircuitPanel extends JInternalFrame {
 	private static final int HEIGTH = 800;
 
 	private boolean selecting = false;
+	private boolean connecting = false;
 	private Point mousePt = new Point(WIDTH / 2, HEIGTH / 2);
 	private Rectangle mouseRect = new Rectangle();
+	private SignalShape signalConnectionBegin = null;
+	private SignalShape signalConnectionEnd = null;
 
 	private final List<BlockView> blocksInCircuit = new ArrayList<BlockView>();
 
 	// TODO Implement buffer rendering when necessary?!
 	// private final BufferedImage circuitImage;
+
+	/**
+	 * Containing a connection between two signals where one is a input and one
+	 * is a output. To draw a connection the method <code>drawConnection</code>
+	 * has to be called with the current graphics context n which to paint.
+	 * 
+	 * @author Christian Wichmann
+	 */
+	private class Connection {
+
+		private SignalShape a;
+		private SignalShape b;
+
+		public Connection(SignalShape a, SignalShape b) {
+
+			if ((a.getAttachedSignal() instanceof Output)
+					&& (b.getAttachedSignal() instanceof Output)
+					|| (a.getAttachedSignal() instanceof Input)
+					&& (b.getAttachedSignal() instanceof Input)) {
+				throw new IllegalArgumentException(
+						"One signal has to be an input and the other an output.");
+			}
+
+			this.a = a;
+			this.b = b;
+
+			makeActualConnection();
+		}
+
+		/**
+		 * Creates actual connection in the block objects for simulation.
+		 */
+		private void makeActualConnection() {
+
+			final Input thisInput;
+			final Output thisOutput;
+
+			if ((a.getAttachedSignal() instanceof Output)) {
+				thisInput = (Input) b.getAttachedSignal();
+				thisOutput = (Output) a.getAttachedSignal();
+			} else {
+				thisInput = (Input) a.getAttachedSignal();
+				thisOutput = (Output) b.getAttachedSignal();
+			}
+
+			thisOutput.connectTo(thisInput);
+		}
+
+		/**
+		 * Paints this connection from signal shape to signal shape.
+		 * 
+		 * @param g
+		 *            graphics context in which to paint
+		 */
+		protected void drawConnection(Graphics2D g) {
+
+			g.setColor(ColorFactory.getInstance().getLineColor());
+			int x1 = a.pointForSignal().x;
+			int y1 = a.pointForSignal().y;
+			int x2 = b.pointForSignal().x;
+			int y2 = b.pointForSignal().y;
+			g.drawLine(x1, y1, x2, y2);
+		}
+	}
+
+	private List<Connection> connections = new ArrayList<Connection>();
 
 	/**
 	 * Initializes a panel to show a logical circuit with its name as title.
@@ -124,9 +197,24 @@ public class CircuitPanel extends JInternalFrame {
 				}
 
 				if (selecting) {
-					g.setColor(ColorFactory.getInstance().getShadowColor());
-					g.drawRect(mouseRect.x, mouseRect.y, mouseRect.width,
+					g2d.setColor(ColorFactory.getInstance().getShadowColor());
+					g2d.drawRect(mouseRect.x, mouseRect.y, mouseRect.width,
 							mouseRect.height);
+				}
+
+				if (connecting) {
+					g2d.setColor(ColorFactory.getInstance().getHighlightColor());
+					int x1 = signalConnectionBegin.pointForSignal().x;
+					int y1 = signalConnectionBegin.pointForSignal().y;
+					int x2 = mousePt.x;
+					int y2 = mousePt.y;
+					g2d.drawLine(x1, y1, x2, y2);
+					// TODO better line alignment/layout (ConnectionPainter
+					// class???)
+				}
+
+				for (Connection c : connections) {
+					c.drawConnection(g2d);
 				}
 			}
 		});
@@ -155,7 +243,7 @@ public class CircuitPanel extends JInternalFrame {
 
 			@Override
 			public void internalFrameClosing(InternalFrameEvent e) {
-				LOG.debug("Circuit panel should be closed?!");
+				LOG.debug("Circuit should be saved?");
 			}
 
 			@Override
@@ -177,19 +265,40 @@ public class CircuitPanel extends JInternalFrame {
 		addMouseListener(new MouseAdapter() {
 
 			@Override
-			public void mouseReleased(MouseEvent e) {
+			public void mouseReleased(final MouseEvent e) {
+
+				// check if connection has been made
+				if (connecting) {
+
+					if (signalConnectionBegin != null
+							&& signalConnectionEnd != null) {
+						try {
+							connections
+									.add(new Connection(signalConnectionBegin,
+											signalConnectionEnd));
+						} catch (IllegalArgumentException argException) {
+							LOG.warn("Two not connectable signals where chosen.");
+						}
+					}
+					connecting = false;
+				}
+
 				selecting = false;
 				mouseRect.setBounds(0, 0, 0, 0);
+
 				if (e.isPopupTrigger()) {
 					// showPopup(e);
 				}
-				e.getComponent().repaint();
+				repaint();
 			}
 
 			@Override
-			public void mousePressed(MouseEvent e) {
+			public void mousePressed(final MouseEvent e) {
+
 				mousePt = e.getPoint();
-				if (e.isShiftDown()) {
+				if (signalConnectionBegin != null) {
+					connecting = true;
+				} else if (e.isShiftDown()) {
 					toggleSelection(mousePt);
 				} else if (e.isPopupTrigger()) {
 					selectOneBlock(mousePt);
@@ -200,7 +309,7 @@ public class CircuitPanel extends JInternalFrame {
 					selectNoBlock();
 					selecting = true;
 				}
-				e.getComponent().repaint();
+				repaint();
 			}
 		});
 
@@ -209,36 +318,72 @@ public class CircuitPanel extends JInternalFrame {
 			Point delta = new Point();
 
 			@Override
-			public void mouseMoved(MouseEvent e) {
+			public void mouseMoved(final MouseEvent e) {
+
+				signalConnectionBegin = checkIfSignalOnPoint(e.getPoint());
+
+				if (signalConnectionBegin != null) {
+					setCursor(new Cursor(Cursor.CROSSHAIR_CURSOR));
+				} else {
+					setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+				}
 			}
 
 			@Override
-			public void mouseDragged(MouseEvent e) {
+			public void mouseDragged(final MouseEvent e) {
+
 				if (selecting) {
 					mouseRect.setBounds(Math.min(mousePt.x, e.getX()),
 							Math.min(mousePt.y, e.getY()),
 							Math.abs(mousePt.x - e.getX()),
 							Math.abs(mousePt.y - e.getY()));
 					selectBlockViews(mouseRect);
+
+				} else if (connecting) {
+					signalConnectionEnd = checkIfSignalOnPoint(e.getPoint());
+					mousePt = e.getPoint();
+
 				} else {
 					delta.setLocation(e.getX() - mousePt.x, e.getY()
 							- mousePt.y);
 					moveBlockViews(delta);
 					mousePt = e.getPoint();
 				}
-				e.getComponent().repaint();
+				repaint();
 			}
 		});
 	}
 
-	public void selectBlockViews(Rectangle selectionRectangle) {
+	/*
+	 * ===== Helper methods for mouse handling =====
+	 */
+
+	/**
+	 * Checks if mouse is over a signal of one block.
+	 * 
+	 * @param mousePoint
+	 *            point to check for signals
+	 */
+	private SignalShape checkIfSignalOnPoint(Point mousePoint) {
+
+		SignalShape signal = null;
+		for (BlockView block : blocksInCircuit) {
+			signal = block.checkIfPointIsSignal(mousePoint);
+			if (signal != null) {
+				break;
+			}
+		}
+		return signal;
+	}
+
+	private void selectBlockViews(Rectangle selectionRectangle) {
 
 		for (BlockView b : blocksInCircuit) {
 			b.setSelected(selectionRectangle.contains(b.getCenterPoint()));
 		}
 	}
 
-	public void moveBlockViews(Point delta) {
+	private void moveBlockViews(Point delta) {
 
 		for (BlockView b : blocksInCircuit) {
 			if (b.isSelected()) {
@@ -247,7 +392,7 @@ public class CircuitPanel extends JInternalFrame {
 		}
 	}
 
-	public void toggleSelection(Point point) {
+	private void toggleSelection(Point point) {
 
 		for (BlockView b : blocksInCircuit) {
 			if (b.contains(point)) {
@@ -256,7 +401,7 @@ public class CircuitPanel extends JInternalFrame {
 		}
 	}
 
-	public boolean selectOneBlock(Point point) {
+	private boolean selectOneBlock(Point point) {
 
 		for (BlockView b : blocksInCircuit) {
 			if (b.contains(point)) {
@@ -277,6 +422,10 @@ public class CircuitPanel extends JInternalFrame {
 		}
 	}
 
+	/*
+	 * ===== Other methods =====
+	 */
+
 	/**
 	 * Adds new block view component to this circuit and stores new block view
 	 * in list.
@@ -288,6 +437,11 @@ public class CircuitPanel extends JInternalFrame {
 	private void addBlockToCircuit(Block newBlock) {
 
 		BlockView bv = new BlockView(newBlock);
+		bv.moveBlockView(new Point(50, 50));
 		blocksInCircuit.add(bv);
+
+		BlockView bv2 = new BlockView(newBlock);
+		bv2.moveBlockView(new Point(250, 250));
+		blocksInCircuit.add(bv2);
 	}
 }
