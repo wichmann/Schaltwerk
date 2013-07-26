@@ -17,12 +17,14 @@
  *****************************************************************************/
 package de.ichmann.java.schaltwerk.gui;
 
+import java.awt.BasicStroke;
 import java.awt.Cursor;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.Stroke;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
@@ -41,6 +43,7 @@ import de.ichmann.java.schaltwerk.blocks.Block;
 import de.ichmann.java.schaltwerk.blocks.BlockFactory;
 import de.ichmann.java.schaltwerk.blocks.Input;
 import de.ichmann.java.schaltwerk.blocks.Output;
+import de.ichmann.java.schaltwerk.blocks.Signal;
 import de.ichmann.java.schaltwerk.gui.BlockView.SignalShape;
 
 /**
@@ -63,12 +66,13 @@ public class CircuitPanel extends JInternalFrame {
 	private static int openFrameCount = 0;
 	private static final int xOffset = 30, yOffset = 30;
 
-	private static final int WIDTH = 1000;
-	private static final int HEIGTH = 800;
+	private static final int CIRCUIT_PANEL_WIDTH = 1000;
+	private static final int CIRCUIT_PANEL_HEIGTH = 800;
 
 	private boolean selecting = false;
 	private boolean connecting = false;
-	private Point mousePt = new Point(WIDTH / 2, HEIGTH / 2);
+	private Point mousePt = new Point(CIRCUIT_PANEL_WIDTH / 2,
+			CIRCUIT_PANEL_HEIGTH / 2);
 	private Rectangle mouseRect = new Rectangle();
 	private SignalShape signalConnectionBegin = null;
 	private SignalShape signalConnectionEnd = null;
@@ -134,11 +138,64 @@ public class CircuitPanel extends JInternalFrame {
 		protected void drawConnection(Graphics2D g) {
 
 			g.setColor(ColorFactory.getInstance().getLineColor());
-			int x1 = a.pointForSignal().x;
-			int y1 = a.pointForSignal().y;
-			int x2 = b.pointForSignal().x;
-			int y2 = b.pointForSignal().y;
-			g.drawLine(x1, y1, x2, y2);
+
+			final int x1 = a.pointForSignal().x;
+			final int y1 = a.pointForSignal().y;
+			final int x2 = b.pointForSignal().x;
+			final int y2 = b.pointForSignal().y;
+			final int ridge;
+
+			if (a.x > b.x) {
+				if (b.getAttachedSignal() instanceof Output) {
+					// output of b to input of a
+					ridge = calculateRidge(b, a);
+					g.drawLine(x1, y1, x1 - ridge, y1);
+					g.drawLine(x1 - ridge, y1, x1 - ridge, y2);
+					g.drawLine(x1 - ridge, y2, x2, y2);
+
+				} else {
+					// input of b to output of a while a is further to the right
+					// TODO handle lines that have to surround blocks!
+				}
+
+			} else {
+				if (a.getAttachedSignal() instanceof Output) {
+					// output of a to input of b
+					ridge = calculateRidge(a, b);
+					g.drawLine(x1, y1, x1 + ridge, y1);
+					g.drawLine(x1 + ridge, y1, x1 + ridge, y2);
+					g.drawLine(x1 + ridge, y2, x2, y2);
+
+				} else {
+					// input of a to output of b while b is further to the right
+					// TODO handle lines that have to surround blocks!
+				}
+			}
+		}
+
+		/**
+		 * Calculates x-coordinate for ridge in connection based on how many
+		 * outputs there are and which one has to be connected.
+		 * 
+		 * @return x-coordinate for ridge
+		 */
+		private int calculateRidge(SignalShape left, SignalShape right) {
+
+			final int ridge;
+
+			int n = left.getAttachedSignal().getOwnerBlock().countOutputs();
+			int m = 1;
+			for (String s : left.getAttachedSignal().getOwnerBlock()
+					.outputList()) {
+				if (s.equals(left.getAttachedSignal().getSignalID())) {
+					break;
+				} else {
+					m += 1;
+				}
+			}
+			ridge = (int) (right.x - left.x) / (n + 1) * (n + 1 - m);
+
+			return ridge;
 		}
 	}
 
@@ -176,6 +233,12 @@ public class CircuitPanel extends JInternalFrame {
 		setBackground(ColorFactory.getInstance().getBackgroundColor());
 		setOpaque(false);
 
+		// create necessary stroke types for painting grid and blocks
+		float[] dash = { 4, 2 };
+		final BasicStroke gridStroke = new BasicStroke(1, BasicStroke.CAP_BUTT,
+				BasicStroke.JOIN_MITER, 1, dash, 0);
+		final BasicStroke defaultStroke = new BasicStroke(1);
+
 		setContentPane(new JPanel() {
 
 			private static final long serialVersionUID = -2286655611111287860L;
@@ -189,19 +252,33 @@ public class CircuitPanel extends JInternalFrame {
 				g2d.setRenderingHint(RenderingHints.KEY_RENDERING,
 						RenderingHints.VALUE_RENDER_SPEED);
 
+				// draw background
 				g2d.setColor(ColorFactory.getInstance().getBackgroundColor());
 				g2d.fillRect(0, 0, getWidth(), getHeight());
+				g2d.setColor(ColorFactory.getInstance().getGridColor());
+				g2d.setStroke(gridStroke);
+				for (int i = 0; i < CIRCUIT_PANEL_WIDTH; i += 50) {
+					g2d.drawLine(i, 0, i, CIRCUIT_PANEL_HEIGTH);
+				}
+				for (int i = 0; i < CIRCUIT_PANEL_HEIGTH; i += 50) {
+					g2d.drawLine(0, i, CIRCUIT_PANEL_WIDTH, i);
+				}
+				g2d.setColor(ColorFactory.getInstance().getForegroundColor());
+				g2d.setStroke(defaultStroke);
 
+				// draw all blocks
 				for (BlockView b : blocksInCircuit) {
 					b.drawBlock(g);
 				}
 
+				// draw selection rectangle
 				if (selecting) {
 					g2d.setColor(ColorFactory.getInstance().getShadowColor());
 					g2d.drawRect(mouseRect.x, mouseRect.y, mouseRect.width,
 							mouseRect.height);
 				}
 
+				// draw currently made connection
 				if (connecting) {
 					g2d.setColor(ColorFactory.getInstance().getHighlightColor());
 					int x1 = signalConnectionBegin.pointForSignal().x;
@@ -213,6 +290,7 @@ public class CircuitPanel extends JInternalFrame {
 					// class???)
 				}
 
+				// draw all connections that already exist
 				for (Connection c : connections) {
 					c.drawConnection(g2d);
 				}

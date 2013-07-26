@@ -34,6 +34,7 @@ public final class ColorFactory {
 	private static final Color lineColor = Color.BLACK;
 	private static final Color shadowColor = Color.LIGHT_GRAY;
 	private static final Color highlightColor = Color.RED;
+	private static final Color gridColor = Color.LIGHT_GRAY;
 
 	private ColorFactory() {
 
@@ -103,5 +104,15 @@ public final class ColorFactory {
 	public Color getHighlightColor() {
 
 		return highlightColor;
+	}
+
+	/**
+	 * Returns grid color for the entire application.
+	 * 
+	 * @return grid color
+	 */
+	public Color getGridColor() {
+
+		return gridColor;
 	}
 }
