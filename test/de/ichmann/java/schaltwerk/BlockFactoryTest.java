@@ -23,6 +23,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import de.ichmann.java.schaltwerk.blocks.BlockFactory;
+import de.ichmann.java.schaltwerk.blocks.CompoundBlock;
+import de.ichmann.java.schaltwerk.blocks.Signals;
+
 /**
  * Tests all factory methods on BlockFactory to create compound blocks like
  * flip-flops etc.
@@ -31,12 +35,17 @@ import org.junit.Test;
  */
 public class BlockFactoryTest {
 
+	private CompoundBlock rsff_s;
+	private CompoundBlock rsff_r;
+
 	/**
 	 * @throws java.lang.Exception
 	 */
 	@Before
 	public void setUp() throws Exception {
 
+		rsff_s = BlockFactory.getInstance().getRSFlipFLop(false);
+		rsff_r = BlockFactory.getInstance().getRSFlipFLop(true);
 	}
 
 	/**
@@ -48,14 +57,47 @@ public class BlockFactoryTest {
 	}
 
 	/**
-	 * Test method for
+	 * Tests rs-flip-flops for correct behavior. Test method for
 	 * {@link de.ichmann.java.schaltwerk.blocks.BlockFactory#getRSFlipFLop(boolean)}
-	 * .
 	 */
 	@Test
 	public final void testGetRSFlipFLop() {
 
-		fail("Not yet implemented");
+		rsff_s.input("R").setSignalValue(Signals.ZERO);
+		rsff_s.input("S").setSignalValue(Signals.ZERO);
+		rsff_s.evaluate();
+		rsff_s.unevaluate();
+		assertEquals("", Signals.ZERO, rsff_s.output("Q").getSignalValue());
+
+		rsff_s.input("R").setSignalValue(Signals.ZERO);
+		rsff_s.input("S").setSignalValue(Signals.ONE);
+		rsff_s.evaluate();
+		rsff_s.unevaluate();
+		assertEquals("", Signals.ONE, rsff_s.output("Q").getSignalValue());
+
+		rsff_s.input("R").setSignalValue(Signals.ZERO);
+		rsff_s.input("S").setSignalValue(Signals.ZERO);
+		rsff_s.evaluate();
+		rsff_s.unevaluate();
+		assertEquals("", Signals.ONE, rsff_s.output("Q").getSignalValue());
+
+		rsff_s.input("R").setSignalValue(Signals.ONE);
+		rsff_s.input("S").setSignalValue(Signals.ZERO);
+		rsff_s.evaluate();
+		rsff_s.unevaluate();
+		assertEquals("", Signals.ZERO, rsff_s.output("Q").getSignalValue());
+
+		rsff_s.input("R").setSignalValue(Signals.ZERO);
+		rsff_s.input("S").setSignalValue(Signals.ZERO);
+		rsff_s.evaluate();
+		rsff_s.unevaluate();
+		assertEquals("", Signals.ZERO, rsff_s.output("Q").getSignalValue());
+
+		// rsff_s.input("R").setSignalValue(Signals.ONE);
+		// rsff_s.input("S").setSignalValue(Signals.ONE);
+		// rsff_s.evaluate();
+		// rsff_s.unevaluate();
+		// assertEquals("", Signals.ONE, rsff_s.output("Q").getSignalValue());
 	}
 
 }
