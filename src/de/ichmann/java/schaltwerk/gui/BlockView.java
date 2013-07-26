@@ -240,7 +240,7 @@ public class BlockView {
 						- PADDING - PADDING);
 
 		// paint block name
-		String blockName = getModel().getBlockID();
+		String blockName = getModel().getBlockType().toString();
 		g2d.drawString(blockName, blockBounds.x + blockViewSize.width / 2
 				- calculateFontSize(g2d, blockName).width / 2, blockBounds.y
 				+ HEADER_GAP / 2);

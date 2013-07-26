@@ -324,6 +324,7 @@ public class SchaltwerkFrame extends JFrame {
 			}
 			((CircuitPanel) desktop.getSelectedFrame())
 					.addBlockToCircuit(block);
+			((CircuitPanel) desktop.getSelectedFrame()).repaint();
 		}
 	}
 
