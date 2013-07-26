@@ -24,6 +24,7 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.beans.PropertyVetoException;
 
+import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
@@ -38,6 +39,15 @@ import javax.swing.UIManager.LookAndFeelInfo;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import de.ichmann.java.schaltwerk.blocks.AND;
+import de.ichmann.java.schaltwerk.blocks.Block;
+import de.ichmann.java.schaltwerk.blocks.BlockFactory;
+import de.ichmann.java.schaltwerk.blocks.Blocks;
+import de.ichmann.java.schaltwerk.blocks.NAND;
+import de.ichmann.java.schaltwerk.blocks.NOR;
+import de.ichmann.java.schaltwerk.blocks.NOT;
+import de.ichmann.java.schaltwerk.blocks.OR;
 
 /**
  * Main frame for Schaltwerk displaying menu bar, status bar and circuit panels
@@ -54,6 +64,8 @@ public class SchaltwerkFrame extends JFrame {
 			.getLogger(SchaltwerkFrame.class);
 
 	private JDesktopPane desktop;
+
+	private CircuitPanel mainCircuitFrame;
 
 	/**
 	 * Initialize main frame of Schaltwerk.
@@ -107,29 +119,6 @@ public class SchaltwerkFrame extends JFrame {
 		createInternalFrame();
 
 		setJMenuBar(createMenuBar());
-
-		// GridBagLayout gbl = new GridBagLayout();
-		// GridBagConstraints gc = new GridBagConstraints();
-		// getContentPane().setLayout(gbl);
-		// gc.anchor = GridBagConstraints.CENTER;
-		// gc.fill = GridBagConstraints.BOTH;
-		// gc.gridx = 0;
-		// gc.gridy = 0;
-		// gc.gridheight = 1;
-		// gc.gridwidth = 1;
-		// gc.weightx = 0;
-		// gc.weighty = 0;
-		// getContentPane().add(desktop, gc);
-		// gc.anchor = GridBagConstraints.SOUTHWEST;
-		// gc.fill = GridBagConstraints.HORIZONTAL;
-		// gc.gridx = 0;
-		// gc.gridy = 1;
-		// gc.gridheight = 1;
-		// gc.gridwidth = 1;
-		// gc.weightx = 0;
-		// gc.weighty = 0;
-		// getContentPane().add(getStatusBar(), gc);
-		// pack();
 	}
 
 	/**
@@ -184,10 +173,10 @@ public class SchaltwerkFrame extends JFrame {
 
 		JMenuBar menuBar = new JMenuBar();
 
-		// Set up the lone menu.
-		JMenu menu = new JMenu("File");
-		menu.setMnemonic(KeyEvent.VK_F);
-		menuBar.add(menu);
+		// ===== file menu =====
+		JMenu fileMenu = new JMenu("File");
+		fileMenu.setMnemonic(KeyEvent.VK_F);
+		menuBar.add(fileMenu);
 
 		// Set up the first menu item.
 		JMenuItem menuItem = new JMenuItem("New");
@@ -202,8 +191,8 @@ public class SchaltwerkFrame extends JFrame {
 				createInternalFrame();
 			}
 		});
-		menu.add(menuItem);
-		menu.addSeparator();
+		fileMenu.add(menuItem);
+		fileMenu.addSeparator();
 
 		// Set up the second menu item.
 		menuItem = new JMenuItem("Quit");
@@ -217,7 +206,29 @@ public class SchaltwerkFrame extends JFrame {
 				handleQuit();
 			}
 		});
-		menu.add(menuItem);
+		fileMenu.add(menuItem);
+
+		// ===== file menu =====
+		JMenu blockMenu = new JMenu("Blocks");
+		blockMenu.setMnemonic(KeyEvent.VK_B);
+		menuBar.add(blockMenu);
+
+		menuItem = new JMenuItem("Add new Block");
+		menuItem.setMnemonic(KeyEvent.VK_B);
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_B,
+				ActionEvent.ALT_MASK));
+		menuItem.setAction(new AddNewBlock("Add New Block"));
+		blockMenu.add(menuItem);
+
+		// ===== help menu =====
+		JMenu helpMenu = new JMenu("Help");
+		helpMenu.setMnemonic(KeyEvent.VK_H);
+		menuBar.add(helpMenu);
+		menuItem = new JMenuItem("About");
+		menuItem.setMnemonic(KeyEvent.VK_A);
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A,
+				ActionEvent.ALT_MASK));
+		helpMenu.add(menuItem);
 
 		return menuBar;
 	}
@@ -251,12 +262,12 @@ public class SchaltwerkFrame extends JFrame {
 	 */
 	private void createInternalFrame() {
 
-		CircuitPanel frame = new CircuitPanel("Beispielschaltung.circuit");
-		frame.setVisible(true);
-		desktop.add(frame);
+		mainCircuitFrame = new CircuitPanel("Beispielschaltung.circuit");
+		mainCircuitFrame.setVisible(true);
+		desktop.add(mainCircuitFrame);
 		try {
-			frame.setSelected(true);
-			frame.setMaximum(true);
+			mainCircuitFrame.setSelected(true);
+			mainCircuitFrame.setMaximum(true);
 		} catch (PropertyVetoException e) {
 			LOG.warn("Error encountered while selecting internal frame.");
 		}
@@ -272,6 +283,48 @@ public class SchaltwerkFrame extends JFrame {
 	private void handleQuit() {
 
 		System.exit(0);
+	}
+
+	private class AddNewBlock extends AbstractAction {
+
+		private static final long serialVersionUID = -94858533824980815L;
+
+		public AddNewBlock(String name) {
+			super(name);
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			AddBlockDialog d = new AddBlockDialog();
+			d.setVisible(true);
+			Blocks blockType = d.getChosenBlock();
+			Block block = null;
+			switch (blockType) {
+			case AND:
+				block = new AND(3);
+				break;
+			case NAND:
+				block = new NAND(3);
+				break;
+			case NOR:
+				block = new NOR(3);
+				break;
+			case NOT:
+				block = new NOT();
+				break;
+			case OR:
+				block = new OR(3);
+				break;
+			case RS_FLIPFLOP:
+				block = BlockFactory.getInstance().getRSFlipFLop(false);
+				break;
+			default:
+				assert false : blockType;
+				break;
+			}
+			((CircuitPanel) desktop.getSelectedFrame())
+					.addBlockToCircuit(block);
+		}
 	}
 
 	public static void main(String[] args) {

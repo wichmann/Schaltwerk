@@ -24,7 +24,6 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
-import java.awt.Stroke;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
@@ -43,7 +42,6 @@ import de.ichmann.java.schaltwerk.blocks.Block;
 import de.ichmann.java.schaltwerk.blocks.BlockFactory;
 import de.ichmann.java.schaltwerk.blocks.Input;
 import de.ichmann.java.schaltwerk.blocks.Output;
-import de.ichmann.java.schaltwerk.blocks.Signal;
 import de.ichmann.java.schaltwerk.gui.BlockView.SignalShape;
 
 /**
@@ -512,14 +510,10 @@ public class CircuitPanel extends JInternalFrame {
 	 *            block to be added to circuit
 	 * @see blocksInCircuit
 	 */
-	private void addBlockToCircuit(Block newBlock) {
+	protected void addBlockToCircuit(Block newBlock) {
 
 		BlockView bv = new BlockView(newBlock);
-		bv.moveBlockView(new Point(50, 50));
+		bv.moveBlockView(new Point(150, 150));
 		blocksInCircuit.add(bv);
-
-		BlockView bv2 = new BlockView(newBlock);
-		bv2.moveBlockView(new Point(250, 250));
-		blocksInCircuit.add(bv2);
 	}
 }
