@@ -25,8 +25,13 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.Toolkit;
 import java.awt.event.ActionListener;
+import java.awt.geom.Ellipse2D;
+import java.util.ArrayList;
+import java.util.List;
 
+import javax.swing.SwingUtilities;
 import javax.swing.event.EventListenerList;
 
 import org.slf4j.Logger;
@@ -35,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import de.ichmann.java.schaltwerk.blocks.Block;
 import de.ichmann.java.schaltwerk.blocks.Input;
 import de.ichmann.java.schaltwerk.blocks.Output;
+import de.ichmann.java.schaltwerk.blocks.Signal;
 
 /**
  * Represents controller and view for a block in a logical circuit based on the
@@ -47,8 +53,6 @@ import de.ichmann.java.schaltwerk.blocks.Output;
  * @author Christian Wichmann
  */
 public class BlockView {
-
-	private static final long serialVersionUID = -6929640466415111925L;
 
 	private static final Logger LOG = LoggerFactory.getLogger(BlockView.class);
 
@@ -64,12 +68,65 @@ public class BlockView {
 	private static final int MIN_BLOCK_HEIGHT = 100;
 	private static final int HEADER_GAP = 50;
 	private static final int SIGNAL_GAP = 25;
+	private static final int WIDTH_GAP = 40 + INTERNAL_PADDING + PADDING;
+	private static final int RADIUS = 5;
 
 	private Rectangle blockBounds = new Rectangle();
+	private final List<SignalShape> signalShapes = new ArrayList<SignalShape>();
 
 	private static final Color highlightColor = new Color(222, 222, 222);
+
 	private boolean highlighted = false;
 	private boolean selected = false;
+
+	/**
+	 * Stores a shape describing a signal (input or output of a block). It is
+	 * used to determine where a block can be connected to another.
+	 * 
+	 * @author Christian Wichmann
+	 */
+	public class SignalShape extends Ellipse2D.Float {
+
+		private static final long serialVersionUID = -1254640466415111925L;
+
+		private final Signal attachedSignal;
+
+		/**
+		 * Initializes a shape that is attached to a specific signal, either an
+		 * input or an output of a block.
+		 * 
+		 * @param x
+		 *            the X coordinate of the upper-left corner of the framing
+		 *            rectangle
+		 * @param y
+		 *            the Y coordinate of the upper-left corner of the framing
+		 *            rectangle
+		 * @param w
+		 *            the width of the framing rectangle
+		 * @param h
+		 *            the height of the framing rectangle
+		 * @param attachedSignal
+		 *            sihnal that is attached to this shape
+		 */
+		public SignalShape(float x, float y, float w, float h,
+				Signal attachedSignal) {
+
+			super(x, y, w, h);
+
+			this.attachedSignal = attachedSignal;
+		}
+
+		/**
+		 * Returns the attached signal for this shape.
+		 * 
+		 * @return attached signal for this shape
+		 */
+		public Signal getAttachedSignal() {
+
+			return attachedSignal;
+		}
+
+	}
 
 	/**
 	 * Model for this block defining inputs, outputs and name of it.
@@ -91,6 +148,8 @@ public class BlockView {
 		initialize();
 
 		calculateSizeAndSetBounds();
+
+		calculateSignalShapes();
 	}
 
 	/**
@@ -244,9 +303,10 @@ public class BlockView {
 
 			LOG.debug("Calculating size for block view component...");
 
-			int width = 80;
-			// TODO calc real width
+			// calculate width by measuring text widths for inputs and outputs
+			int width = calcaluteWidth();
 
+			// calculate height by counting inputs and outputs
 			final int in = getModel().countInputs();
 			final int out = getModel().countOutputs();
 			int height = HEADER_GAP + SIGNAL_GAP * (in > out ? in : out);
@@ -258,8 +318,87 @@ public class BlockView {
 
 		blockBounds.setBounds(0, 0, blockViewSize.width, blockViewSize.height);
 		moveBlockView(new Point(50, 50));
-		
+
 		return blockViewSize;
+	}
+
+	/**
+	 * Calculates width for this block view component by measuring text widths
+	 * for all inputs and outputs and choosing the minimal necessary width.
+	 * 
+	 * @return width for this block view component
+	 */
+	private int calcaluteWidth() {
+
+		@SuppressWarnings("deprecation")
+		FontMetrics fm = Toolkit.getDefaultToolkit().getFontMetrics(
+				FontFactory.getInstance().createTextFont());
+		// TODO use non deprecated methods Font.getLineMetrics! But that
+		// needs a FontRenderContext.
+		// FontRenderContext frc = new FontRenderContext(FontFactory
+		// .getInstance().createTextFont().getTransform(), true, true);
+
+		int inputWidth = 0;
+		int outputWidth = 0;
+		String[] inputList = getModel().inputList();
+		for (String input : inputList) {
+			int size = SwingUtilities.computeStringWidth(fm, input);
+			inputWidth = inputWidth < size ? size : inputWidth;
+		}
+		String[] outputList = getModel().outputList();
+		for (String output : outputList) {
+			int size = SwingUtilities.computeStringWidth(fm, output);
+			outputWidth = outputWidth < size ? size : outputWidth;
+		}
+
+		// find minimal necessary width for all inputs, outputs and blocks
+		// header
+		int width = inputWidth + WIDTH_GAP + outputWidth;
+		int headerWidth = SwingUtilities.computeStringWidth(fm, getModel()
+				.getBlockID());
+		width = width < headerWidth ? headerWidth : width;
+
+		assert width >= headerWidth;
+		assert width >= inputWidth;
+		assert width >= outputWidth;
+		assert width > WIDTH_GAP;
+		return width;
+	}
+
+	/**
+	 * Calculates a specific shape for all input and output signals as 'contact'
+	 * for connecting this block with others. Use method
+	 * <code>checkIfPointIsSignal(Point p)</code> to get signal for a given
+	 * point in the circuit.
+	 */
+	private void calculateSignalShapes() {
+
+		int x = 0;
+		int y = 0;
+
+		signalShapes.clear();
+
+		// add signal shapes for inputs
+		String[] inputList = getModel().inputList();
+		x = blockBounds.x + RADIUS;
+		y = blockBounds.y + HEADER_GAP;
+		for (String input : inputList) {
+			signalShapes.add(new SignalShape(x, y, RADIUS, RADIUS, getModel()
+					.input(input)));
+			y += SIGNAL_GAP;
+		}
+
+		// add signal shapes for outputs
+		String[] outputList = getModel().outputList();
+		x = blockBounds.x + blockBounds.width - RADIUS;
+		y = blockBounds.y + HEADER_GAP;
+		for (String output : outputList) {
+			signalShapes.add(new SignalShape(x, y, RADIUS, RADIUS, getModel()
+					.output(output)));
+			y += SIGNAL_GAP;
+		}
+
+		assert signalShapes.size() == inputList.length + outputList.length;
 	}
 
 	/**
@@ -269,23 +408,57 @@ public class BlockView {
 	 *            point to check whether it is inside this blocks boundary
 	 * @return true, if point is inside this blocks boundary
 	 */
-	public boolean contains(Point p) {
+	public boolean contains(final Point p) {
 
 		return blockBounds.contains(p);
 	}
 
+	/**
+	 * Returns center point of this block view component.
+	 * 
+	 * @return center point for this block
+	 */
 	public Point getCenterPoint() {
 
 		return new Point((int) blockBounds.getCenterX(),
 				(int) blockBounds.getCenterY());
 	}
 
-	public void moveBlockView(Point delta) {
+	/**
+	 * Moves this blocks coordinates by a given delta. No repaint will
+	 * automatically be done!
+	 * 
+	 * @param delta
+	 *            delta to move this block by
+	 */
+	public void moveBlockView(final Point delta) {
 
-		// TODO check bounds!
+		// TODO check bounds?!
 		blockBounds.x += delta.x;
 		blockBounds.y += delta.y;
 	}
+
+	/**
+	 * Checks whether a given point lies on one of this blocks signals (inputs,
+	 * outputs).
+	 * 
+	 * @param p
+	 *            point to check for
+	 * @return signals shape for given point or null when point is not a signal
+	 */
+	public Signal checkIfPointIsSignal(final Point p) {
+
+		for (SignalShape s : signalShapes) {
+			if (s.contains(p)) {
+				return s.getAttachedSignal();
+			}
+		}
+		return null;
+	}
+
+	/*
+	 * ===== Getter and setter for block view attributes =====
+	 */
 
 	/**
 	 * Sets whether this block is highlighted because mouse hovers over it.

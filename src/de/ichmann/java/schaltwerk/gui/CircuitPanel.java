@@ -25,7 +25,6 @@ import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,7 +36,6 @@ import javax.swing.event.InternalFrameListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.ichmann.java.schaltwerk.blocks.AND;
 import de.ichmann.java.schaltwerk.blocks.Block;
 import de.ichmann.java.schaltwerk.blocks.BlockFactory;
 
@@ -69,7 +67,9 @@ public class CircuitPanel extends JInternalFrame {
 	private Rectangle mouseRect = new Rectangle();
 
 	private final List<BlockView> blocksInCircuit = new ArrayList<BlockView>();
-	private final BufferedImage circuitImage;
+
+	// TODO Implement buffer rendering when necessary?!
+	// private final BufferedImage circuitImage;
 
 	/**
 	 * Initializes a panel to show a logical circuit with its name as title.
@@ -87,8 +87,8 @@ public class CircuitPanel extends JInternalFrame {
 
 		addMouseListeners();
 
-		circuitImage = new BufferedImage(WIDTH, HEIGTH,
-				BufferedImage.TYPE_INT_ARGB);
+		// circuitImage = new BufferedImage(WIDTH, HEIGTH,
+		// BufferedImage.TYPE_INT_ARGB);
 	}
 
 	/**

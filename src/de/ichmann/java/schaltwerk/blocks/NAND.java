@@ -60,6 +60,8 @@ public class NAND extends BaseBlock {
 	@Override
 	public void evaluate() {
 
+		LOG.trace("Evaluating NAND block...");
+
 		if (!wasAlreadyEvaluated()) {
 			// calculate output of NAND block and...
 			output("1").setSignalValue(Signals.ZERO);

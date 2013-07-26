@@ -76,4 +76,62 @@ public final class BlockFactory {
 
 		return circuit;
 	}
+
+	/**
+	 * Returns a new NOT block.
+	 * 
+	 * @return NOT block
+	 */
+	public BaseBlock getNOT() {
+
+		return new NOT();
+	}
+
+	/**
+	 * Returns a new AND block with a number of given inputs.
+	 * 
+	 * @param inputs
+	 *            number of inputs
+	 * @return AND block
+	 */
+	public BaseBlock getAND(int inputs) {
+
+		return new AND(inputs);
+	}
+
+	/**
+	 * Returns a new OR block with a number of given inputs.
+	 * 
+	 * @param inputs
+	 *            number of inputs
+	 * @return OR block
+	 */
+	public BaseBlock getOR(int inputs) {
+
+		return new OR(inputs);
+	}
+
+	/**
+	 * Returns a new NAND block with a number of given inputs.
+	 * 
+	 * @param inputs
+	 *            number of inputs
+	 * @return NAND block
+	 */
+	public BaseBlock getNAND(int inputs) {
+
+		return new NAND(inputs);
+	}
+
+	/**
+	 * Returns a new NOR block with a number of given inputs.
+	 * 
+	 * @param inputs
+	 *            number of inputs
+	 * @return NOR block
+	 */
+	public BaseBlock getNOR(int inputs) {
+
+		return new NOR(inputs);
+	}
 }

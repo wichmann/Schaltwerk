@@ -60,6 +60,8 @@ public class NOR extends BaseBlock {
 	@Override
 	public void evaluate() {
 
+		LOG.trace("Evaluating NOR block...");
+
 		if (!wasAlreadyEvaluated()) {
 			// calculate output of NOR block and...
 			output("1").setSignalValue(Signals.ONE);

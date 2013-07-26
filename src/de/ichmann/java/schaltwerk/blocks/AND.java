@@ -60,6 +60,8 @@ public class AND extends BaseBlock {
 	@Override
 	public void evaluate() {
 
+		LOG.trace("Evaluating AND block...");
+
 		if (!wasAlreadyEvaluated()) {
 			// calculate output of AND block and...
 			output("1").setSignalValue(Signals.ONE);

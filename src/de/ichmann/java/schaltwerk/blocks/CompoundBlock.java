@@ -43,7 +43,7 @@ public class CompoundBlock extends Block {
 	 * included blocks, like using a addBlock() method or find them
 	 * automatically by traversing the network.
 	 */
-	private final List<Block> blockList = new ArrayList<Block>();
+	// private final List<Block> blockList = new ArrayList<Block>();
 
 	/**
 	 * Initializes a compound block with a given number of inputs and outputs.

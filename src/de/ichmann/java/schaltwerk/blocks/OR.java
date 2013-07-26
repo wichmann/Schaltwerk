@@ -60,6 +60,8 @@ public class OR extends BaseBlock {
 	@Override
 	public void evaluate() {
 
+		LOG.trace("Evaluating OR block...");
+
 		if (!wasAlreadyEvaluated()) {
 			// calculate output of OR block and...
 			output("1").setSignalValue(Signals.ZERO);
