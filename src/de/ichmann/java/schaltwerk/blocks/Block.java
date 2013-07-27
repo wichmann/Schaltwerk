@@ -38,6 +38,7 @@ public abstract class Block {
 	private boolean alreadyEvaluated = false;
 
 	private String blockID = "";
+	private String blockDescription = "";
 	private Blocks blockType;
 
 	/**
@@ -204,6 +205,27 @@ public abstract class Block {
 	private final void setBlockID(String blockID) {
 
 		this.blockID = blockID;
+	}
+
+	/**
+	 * Gets description for this block.
+	 * 
+	 * @return block description
+	 */
+	public final String getBlockDescription() {
+
+		return blockDescription;
+	}
+
+	/**
+	 * Sets description for this block.
+	 * 
+	 * @param blockDescription
+	 *            block description to be set
+	 */
+	public final void setBlockDescription(String blockDescription) {
+
+		this.blockDescription = blockDescription;
 	}
 
 	/**

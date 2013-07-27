@@ -219,10 +219,52 @@ public class BlockView {
 		g2d.setRenderingHint(RenderingHints.KEY_RENDERING,
 				RenderingHints.VALUE_RENDER_SPEED);
 
+		g2d.setFont(FontFactory.getInstance().createTextFont());
+
+		drawBackground(g2d);
+
+		drawBorder(g2d);
+
+		drawStrings(g2d);
+
+		drawSignals(g2d);
+	}
+
+	/**
+	 * Draw border around this block.
+	 * 
+	 * @param g2d
+	 *            current graphics context to paint to
+	 */
+	private void drawBorder(Graphics2D g2d) {
+
+		// paint block border
+		g2d.drawRect(blockBounds.x + PADDING, blockBounds.y + PADDING,
+				blockViewSize.width - PADDING - PADDING, blockViewSize.height
+						- PADDING - PADDING);
+
+		// paint border different when selected
+		if (selected) {
+			g2d.setColor(ColorFactory.getInstance().getHighlightColor());
+			g2d.drawRect(blockBounds.x + PADDING, blockBounds.y + PADDING,
+					blockViewSize.width - PADDING - PADDING,
+					blockViewSize.height - PADDING - PADDING);
+		}
+	}
+
+	/**
+	 * Draws background for this block.
+	 * 
+	 * @param g2d
+	 *            current graphics context to paint to
+	 */
+	private void drawBackground(Graphics2D g2d) {
+
 		// paint background
 		g2d.setColor(ColorFactory.getInstance().getBackgroundColor());
-		g2d.fillRect(blockBounds.x, blockBounds.y, blockViewSize.width,
-				blockViewSize.height);
+		g2d.fillRect(blockBounds.x + PADDING, blockBounds.y + PADDING,
+				blockViewSize.width - PADDING - PADDING, blockViewSize.height
+						- PADDING - PADDING);
 		g2d.setColor(ColorFactory.getInstance().getForegroundColor());
 
 		// highlight block
@@ -232,18 +274,16 @@ public class BlockView {
 					blockViewSize.height);
 			g2d.setColor(ColorFactory.getInstance().getForegroundColor());
 		}
+	}
 
-		// paint block border
-		g2d.setFont(FontFactory.getInstance().createTextFont());
-		g2d.drawRect(blockBounds.x + PADDING, blockBounds.y + PADDING,
-				blockViewSize.width - PADDING - PADDING, blockViewSize.height
-						- PADDING - PADDING);
-
-		// paint block name
-		String blockName = getModel().getBlockType().toString();
-		g2d.drawString(blockName, blockBounds.x + blockViewSize.width / 2
-				- calculateFontSize(g2d, blockName).width / 2, blockBounds.y
-				+ HEADER_GAP / 2);
+	/**
+	 * Draws input and output signals, their names and inverter circles if
+	 * necessary.
+	 * 
+	 * @param g2d
+	 *            current graphics context to paint to
+	 */
+	private void drawSignals(Graphics2D g2d) {
 
 		// paint inputs
 		int y = HEADER_GAP;
@@ -285,13 +325,31 @@ public class BlockView {
 
 			y += SIGNAL_GAP;
 		}
+	}
 
-		// paint border different when selected
-		if (selected) {
-			g2d.setColor(ColorFactory.getInstance().getHighlightColor());
-			g2d.drawRect(blockBounds.x + PADDING, blockBounds.y + PADDING,
-					blockViewSize.width - PADDING - PADDING,
-					blockViewSize.height - PADDING - PADDING);
+	/**
+	 * Draws all string for this block.
+	 * 
+	 * @param g2d
+	 *            current graphics context to paint to
+	 */
+	private void drawStrings(Graphics2D g2d) {
+
+		// paint block name
+		String blockName = getModel().getBlockType().toString();
+		g2d.drawString(blockName, blockBounds.x + blockViewSize.width / 2
+				- calculateFontSize(g2d, blockName).width / 2, blockBounds.y
+				+ HEADER_GAP / 2);
+
+		// paint block description
+		String blockDescription = getModel().getBlockDescription();
+		if (!blockDescription.equals("")) {
+			g2d.drawString(blockDescription,
+					blockBounds.x + blockViewSize.width / 2
+							- calculateFontSize(g2d, blockDescription).width
+							/ 2,
+					blockBounds.y
+							- calculateFontSize(g2d, blockDescription).height);
 		}
 	}
 
@@ -329,7 +387,7 @@ public class BlockView {
 	}
 
 	/**
-	 * Calculates size of this block.
+	 * Calculates size of this block and sets bounds.
 	 * 
 	 * @return size of this block
 	 */
@@ -390,8 +448,9 @@ public class BlockView {
 		// header
 		int width = inputWidth + WIDTH_GAP + outputWidth;
 		int headerWidth = SwingUtilities.computeStringWidth(fm, getModel()
-				.getBlockID());
+				.getBlockType().toString());
 		width = width < headerWidth ? headerWidth : width;
+		width += PADDING + PADDING + INTERNAL_PADDING + INTERNAL_PADDING;
 
 		assert width >= headerWidth;
 		assert width >= inputWidth;
