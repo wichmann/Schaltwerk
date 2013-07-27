@@ -99,6 +99,9 @@ public class CircuitPanel extends JInternalFrame {
 		private SignalShape a;
 		private SignalShape b;
 
+		private static final int X_GAP = 25;
+		private static final int Y_GAP = 75;
+
 		public Connection(SignalShape a, SignalShape b) {
 
 			if ((a.getAttachedSignal() instanceof Output)
@@ -144,37 +147,136 @@ public class CircuitPanel extends JInternalFrame {
 
 			g.setColor(ColorFactory.getInstance().getLineColor());
 
-			final int x1 = a.pointForSignal().x;
-			final int y1 = a.pointForSignal().y;
-			final int x2 = b.pointForSignal().x;
-			final int y2 = b.pointForSignal().y;
-			final int ridge;
-
 			if (a.x > b.x) {
 				if (b.getAttachedSignal() instanceof Output) {
-					// output of b to input of a
-					ridge = calculateRidge(b, a);
-					g.drawLine(x1, y1, x1 - ridge, y1);
-					g.drawLine(x1 - ridge, y1, x1 - ridge, y2);
-					g.drawLine(x1 - ridge, y2, x2, y2);
-
+					drawDirectConnection(g, b, a);
+					// TODO maybe a and b have to be switched :-)
 				} else {
-					// input of b to output of a while a is further to the right
-					// TODO handle lines that have to surround blocks!
+					drawSurroundingConnection(g, a, b);
 				}
 
 			} else {
 				if (a.getAttachedSignal() instanceof Output) {
-					// output of a to input of b
-					ridge = calculateRidge(a, b);
-					g.drawLine(x1, y1, x1 + ridge, y1);
-					g.drawLine(x1 + ridge, y1, x1 + ridge, y2);
-					g.drawLine(x1 + ridge, y2, x2, y2);
-
+					drawDirectConnection(g, a, b);
+					// TODO maybe a and b have to be switched :-)
 				} else {
-					// input of a to output of b while b is further to the right
-					// TODO handle lines that have to surround blocks!
+					drawSurroundingConnection(g, b, a);
 				}
+			}
+		}
+
+		/**
+		 * Draws a connection directly between the output of the left block to
+		 * the input of the right block.
+		 * 
+		 * <p>
+		 * <blockquote>
+		 * 
+		 * <pre>
+		 *    ------
+		 *    |    |         shape2
+		 *    |    |----|    ------
+		 *    |    |    |    |    |
+		 *    ------    |----|    |
+		 *    shape1         |    |
+		 *                   ------
+		 * </pre>
+		 * 
+		 * </blockquote>
+		 * 
+		 * @param g
+		 *            graphics context in which to paint
+		 * @param shape1
+		 *            first shape
+		 * @param shape2
+		 *            second shape
+		 */
+		private void drawDirectConnection(Graphics2D g, SignalShape shape1,
+				SignalShape shape2) {
+
+			final int x1 = shape1.pointForSignal().x;
+			final int y1 = shape1.pointForSignal().y;
+			final int x2 = shape2.pointForSignal().x;
+			final int y2 = shape2.pointForSignal().y;
+			final int ridge;
+
+			if (shape1.x > shape2.x) {
+				ridge = calculateRidge(shape2, shape1);
+				g.drawLine(x1, y1, x1 - ridge, y1);
+				g.drawLine(x1 - ridge, y1, x1 - ridge, y2);
+				g.drawLine(x1 - ridge, y2, x2, y2);
+			} else {
+				ridge = calculateRidge(shape1, shape2);
+				g.drawLine(x1, y1, x1 + ridge, y1);
+				g.drawLine(x1 + ridge, y1, x1 + ridge, y2);
+				g.drawLine(x1 + ridge, y2, x2, y2);
+			}
+		}
+
+		/**
+		 * Draws a connection that has to be routed around another block from
+		 * the output of the right block to the input of the left block.
+		 * 
+		 * <p>
+		 * <blockquote>
+		 * 
+		 * <pre>
+		 *  ----------------------------
+		 *  |   ------                 |
+		 *  ----|    |       shape1    |
+		 *      |    |       ------    |
+		 *      |    |       |    |    |
+		 *      ------       |    |-----
+		 *      shape2       |    |
+		 *                   ------
+		 * </pre>
+		 * 
+		 * </blockquote>
+		 * 
+		 * @param g
+		 *            graphics context in which to paint
+		 * @param shape1
+		 *            first shape
+		 * @param shape2
+		 *            second shape
+		 */
+		private void drawSurroundingConnection(Graphics2D g,
+				SignalShape shape1, SignalShape shape2) {
+
+			final int x1 = shape1.pointForSignal().x;
+			final int y1 = shape1.pointForSignal().y;
+			final int x2 = shape2.pointForSignal().x;
+			final int y2 = shape2.pointForSignal().y;
+
+			// calculate the index of shape2's input and adjust x gap
+			// accordingly
+			int m = 1;
+			for (String s : shape2.getAttachedSignal().getOwnerBlock()
+					.inputList()) {
+				if (s.equals(shape2.getAttachedSignal().getSignalID())) {
+					break;
+				} else {
+					m += 1;
+				}
+			}
+			final int xGap = m * X_GAP;
+
+			if (shape1.y > shape2.y) {
+				// shape 1 is lower than shape 2
+				final int yMax = (int) (shape2.y - Y_GAP);
+				g.drawLine(x1, y1, x1 + xGap, y1);
+				g.drawLine(x1 + xGap, y1, x1 + xGap, yMax);
+				g.drawLine(x1 + xGap, yMax, x2 - xGap, yMax);
+				g.drawLine(x2 - xGap, yMax, x2 - xGap, y2);
+				g.drawLine(x2 - xGap, y2, x2, y2);
+			} else {
+				// shape 1 is higher than shape 2
+				final int yMin = (int) (shape2.y + Y_GAP);
+				g.drawLine(x1, y1, x1 + xGap, y1);
+				g.drawLine(x1 + xGap, y1, x1 + xGap, yMin);
+				g.drawLine(x1 + xGap, yMin, x2 - xGap, yMin);
+				g.drawLine(x2 - xGap, yMin, x2 - xGap, y2);
+				g.drawLine(x2 - xGap, y2, x2, y2);
 			}
 		}
 
