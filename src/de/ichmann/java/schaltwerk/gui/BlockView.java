@@ -22,14 +22,9 @@ import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.event.ActionListener;
-import java.awt.geom.Ellipse2D;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.swing.SwingUtilities;
 import javax.swing.event.EventListenerList;
@@ -43,7 +38,6 @@ import de.ichmann.java.schaltwerk.blocks.NAND;
 import de.ichmann.java.schaltwerk.blocks.NOR;
 import de.ichmann.java.schaltwerk.blocks.NOT;
 import de.ichmann.java.schaltwerk.blocks.Output;
-import de.ichmann.java.schaltwerk.blocks.Signal;
 
 /**
  * Represents controller and view for a block in a logical circuit based on the
@@ -55,7 +49,7 @@ import de.ichmann.java.schaltwerk.blocks.Signal;
  * 
  * @author Christian Wichmann
  */
-public class BlockView {
+public final class BlockView extends BaseView {
 
 	private static final Logger LOG = LoggerFactory.getLogger(BlockView.class);
 
@@ -75,79 +69,7 @@ public class BlockView {
 	private static final int RADIUS_SIGNAL = 15;
 	private static final int RADIUS_INVERTED = 5;
 
-	private Rectangle blockBounds = new Rectangle();
-	private final List<SignalShape> signalShapes = new ArrayList<SignalShape>();
-
 	private static final Color highlightColor = new Color(222, 222, 222);
-
-	private boolean highlighted = false;
-	private boolean selected = false;
-
-	/**
-	 * Stores a shape describing a signal (input or output of a block). It is
-	 * used to determine where a block can be connected to another.
-	 * 
-	 * This component is the view/controller for a underlying signal.
-	 * 
-	 * @author Christian Wichmann
-	 */
-	public class SignalShape extends Ellipse2D.Float {
-
-		private static final long serialVersionUID = -1254640466415111925L;
-
-		private final Signal attachedSignal;
-
-		/**
-		 * Initializes a shape that is attached to a specific signal, either an
-		 * input or an output of a block.
-		 * 
-		 * @param x
-		 *            the X coordinate of the upper-left corner of the framing
-		 *            rectangle
-		 * @param y
-		 *            the Y coordinate of the upper-left corner of the framing
-		 *            rectangle
-		 * @param w
-		 *            the width of the framing rectangle
-		 * @param h
-		 *            the height of the framing rectangle
-		 * @param attachedSignal
-		 *            sihnal that is attached to this shape
-		 */
-		public SignalShape(float x, float y, float w, float h,
-				Signal attachedSignal) {
-
-			super(x, y, w, h);
-
-			this.attachedSignal = attachedSignal;
-		}
-
-		/**
-		 * Returns the attached signal for this shape.
-		 * 
-		 * @return attached signal for this shape
-		 */
-		public Signal getAttachedSignal() {
-
-			return attachedSignal;
-		}
-
-		/**
-		 * Returns a point for this signal. The point is the center of the
-		 * signal.
-		 * 
-		 * @return center point for given signal
-		 */
-		public Point pointForSignal() {
-
-			Point p = null;
-
-			p = new Point((int) x, (int) y - RADIUS_SIGNAL);
-
-			assert p != null;
-			return p;
-		}
-	}
 
 	/**
 	 * Model for this block defining inputs, outputs and name of it.
@@ -247,7 +169,7 @@ public class BlockView {
 						- PADDING - PADDING);
 
 		// paint border different when selected
-		if (selected) {
+		if (isSelected()) {
 			g2d.setColor(ColorFactory.getInstance().getHighlightColor());
 			g2d.drawRect(blockBounds.x + PADDING, blockBounds.y + PADDING,
 					blockViewSize.width - PADDING - PADDING,
@@ -271,7 +193,7 @@ public class BlockView {
 		g2d.setColor(ColorFactory.getInstance().getForegroundColor());
 
 		// highlight block
-		if (highlighted) {
+		if (isHighlighted()) {
 			g2d.setColor(highlightColor);
 			g2d.fillRect(blockBounds.x, blockBounds.y, blockViewSize.width,
 					blockViewSize.height);
@@ -499,112 +421,6 @@ public class BlockView {
 		}
 
 		assert signalShapes.size() == inputList.length + outputList.length;
-	}
-
-	/**
-	 * Checks whether a given point is inside this blocks boundary.
-	 * 
-	 * @param p
-	 *            point to check whether it is inside this blocks boundary
-	 * @return true, if point is inside this blocks boundary
-	 */
-	public boolean contains(final Point p) {
-
-		return blockBounds.contains(p);
-	}
-
-	/**
-	 * Returns center point of this block view component.
-	 * 
-	 * @return center point for this block
-	 */
-	public Point getCenterPoint() {
-
-		return new Point((int) blockBounds.getCenterX(),
-				(int) blockBounds.getCenterY());
-	}
-
-	/**
-	 * Moves this blocks coordinates by a given delta. No repaint will
-	 * automatically be done!
-	 * 
-	 * @param delta
-	 *            delta to move this block by
-	 */
-	public void moveBlockView(final Point delta) {
-
-		// TODO check bounds?!
-		blockBounds.x += delta.x;
-		blockBounds.y += delta.y;
-
-		for (SignalShape s : signalShapes) {
-			s.x += delta.x;
-			s.y += delta.y;
-		}
-	}
-
-	/**
-	 * Checks whether a given point lies on one of this blocks signals (inputs,
-	 * outputs).
-	 * 
-	 * @param p
-	 *            point to check for
-	 * @return signals shape for given point or null when point is not a signal
-	 */
-	public SignalShape checkIfPointIsSignal(final Point p) {
-
-		for (SignalShape s : signalShapes) {
-			if (s.contains(p)) {
-				return s;
-			}
-		}
-		return null;
-	}
-
-	/*
-	 * ===== Getter and setter for block view attributes =====
-	 */
-
-	/**
-	 * Sets whether this block is highlighted because mouse hovers over it.
-	 * 
-	 * @param highlighted
-	 *            whether to highlight this block
-	 */
-	public void setHighlighted(final boolean highlighted) {
-
-		this.highlighted = highlighted;
-	}
-
-	/**
-	 * Returns whether this block is highlighted because mouse hovers over it.
-	 * 
-	 * @return whether this block is highlighted
-	 */
-	public boolean isHighlighted() {
-
-		return highlighted;
-	}
-
-	/**
-	 * Sets whether this block is selected.
-	 * 
-	 * @param selected
-	 *            whether to selected this block
-	 */
-	public void setSelected(final boolean selected) {
-
-		this.selected = selected;
-	}
-
-	/**
-	 * Returns whether this block is selected.
-	 * 
-	 * @return whether this block is selected
-	 */
-	public boolean isSelected() {
-
-		return selected;
 	}
 
 	/*

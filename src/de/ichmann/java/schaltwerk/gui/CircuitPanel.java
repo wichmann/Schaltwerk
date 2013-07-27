@@ -22,16 +22,13 @@ import java.awt.Cursor;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
-import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.swing.JInternalFrame;
 import javax.swing.JPanel;
@@ -42,10 +39,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.ichmann.java.schaltwerk.blocks.Block;
-import de.ichmann.java.schaltwerk.blocks.BlockFactory;
+import de.ichmann.java.schaltwerk.blocks.CompoundBlock;
 import de.ichmann.java.schaltwerk.blocks.Input;
 import de.ichmann.java.schaltwerk.blocks.Output;
-import de.ichmann.java.schaltwerk.gui.BlockView.SignalShape;
 
 /**
  * Main panel for Schaltwerk which paints a circuit into given area. For
@@ -78,8 +74,11 @@ public class CircuitPanel extends JInternalFrame {
 	private SignalShape signalConnectionBegin = null;
 	private SignalShape signalConnectionEnd = null;
 
-	private final List<BlockView> blocksInCircuit = new ArrayList<BlockView>();
-	private static final Map<Connection, Polygon> connectionLines = new HashMap<Connection, Polygon>();
+	private final CompoundBlock currentCircuit;
+	private final List<BaseView> blocksInCircuit = new ArrayList<BaseView>();
+
+	// private static final Map<Connection, Polygon> connectionLines = new
+	// HashMap<Connection, Polygon>();
 
 	// TODO use map to store all lines as polygons(?) and calculate them only
 	// when blocks are moved
@@ -150,7 +149,6 @@ public class CircuitPanel extends JInternalFrame {
 			if (a.x > b.x) {
 				if (b.getAttachedSignal() instanceof Output) {
 					drawDirectConnection(g, b, a);
-					// TODO maybe a and b have to be switched :-)
 				} else {
 					drawSurroundingConnection(g, a, b);
 				}
@@ -158,7 +156,6 @@ public class CircuitPanel extends JInternalFrame {
 			} else {
 				if (a.getAttachedSignal() instanceof Output) {
 					drawDirectConnection(g, a, b);
-					// TODO maybe a and b have to be switched :-)
 				} else {
 					drawSurroundingConnection(g, b, a);
 				}
@@ -318,6 +315,8 @@ public class CircuitPanel extends JInternalFrame {
 
 		super(circuitName, true, true, true, true);
 
+		currentCircuit = new CompoundBlock(circuitName, 0, 0);
+
 		initialize();
 
 		addListeners();
@@ -326,6 +325,13 @@ public class CircuitPanel extends JInternalFrame {
 
 		// circuitImage = new BufferedImage(WIDTH, HEIGTH,
 		// BufferedImage.TYPE_INT_ARGB);
+	}
+
+	public CircuitPanel(final String circuitName, final CompoundBlock circuit) {
+
+		currentCircuit = circuit;
+
+		// TODO Import compound block and paint it on screen
 	}
 
 	/**
@@ -359,22 +365,10 @@ public class CircuitPanel extends JInternalFrame {
 				g2d.setRenderingHint(RenderingHints.KEY_RENDERING,
 						RenderingHints.VALUE_RENDER_SPEED);
 
-				// draw background
-				g2d.setColor(ColorFactory.getInstance().getBackgroundColor());
-				g2d.fillRect(0, 0, getWidth(), getHeight());
-				g2d.setColor(ColorFactory.getInstance().getGridColor());
-				g2d.setStroke(gridStroke);
-				for (int i = 0; i < CIRCUIT_PANEL_WIDTH; i += 50) {
-					g2d.drawLine(i, 0, i, CIRCUIT_PANEL_HEIGTH);
-				}
-				for (int i = 0; i < CIRCUIT_PANEL_HEIGTH; i += 50) {
-					g2d.drawLine(0, i, CIRCUIT_PANEL_WIDTH, i);
-				}
-				g2d.setColor(ColorFactory.getInstance().getForegroundColor());
-				g2d.setStroke(defaultStroke);
+				drawBackground(g2d);
 
 				// draw all blocks
-				for (BlockView b : blocksInCircuit) {
+				for (BaseView b : blocksInCircuit) {
 					b.drawBlock(g);
 				}
 
@@ -393,18 +387,37 @@ public class CircuitPanel extends JInternalFrame {
 					int x2 = mousePt.x;
 					int y2 = mousePt.y;
 					g2d.drawLine(x1, y1, x2, y2);
-					// TODO better line alignment/layout (ConnectionPainter
-					// class???)
 				}
 
 				// draw all connections that already exist
 				for (Connection c : connections) {
+					g2d.setColor(ColorFactory.getInstance().getLineColor());
 					c.drawConnection(g2d);
 				}
 			}
-		});
 
-		addBlockToCircuit(BlockFactory.getInstance().getRSFlipFLop(false));
+			/**
+			 * Draws background grid on panel.
+			 * 
+			 * @param g2d
+			 *            graphics context to paint into
+			 */
+			private void drawBackground(final Graphics2D g2d) {
+
+				g2d.setColor(ColorFactory.getInstance().getBackgroundColor());
+				g2d.fillRect(0, 0, getWidth(), getHeight());
+				g2d.setColor(ColorFactory.getInstance().getGridColor());
+				g2d.setStroke(gridStroke);
+				for (int i = 0; i < CIRCUIT_PANEL_WIDTH; i += 50) {
+					g2d.drawLine(i, 0, i, CIRCUIT_PANEL_HEIGTH);
+				}
+				for (int i = 0; i < CIRCUIT_PANEL_HEIGTH; i += 50) {
+					g2d.drawLine(0, i, CIRCUIT_PANEL_WIDTH, i);
+				}
+				g2d.setColor(ColorFactory.getInstance().getForegroundColor());
+				g2d.setStroke(defaultStroke);
+			}
+		});
 	}
 
 	private void addListeners() {
@@ -525,13 +538,14 @@ public class CircuitPanel extends JInternalFrame {
 					selectBlockViews(mouseRect);
 
 				} else if (connecting) {
-					signalConnectionEnd = checkIfSignalOnPoint(e.getPoint());
 					mousePt = e.getPoint();
+					signalConnectionEnd = checkIfSignalOnPoint(e.getPoint());
+					repaint();
 
 				} else {
 					delta.setLocation(e.getX() - mousePt.x, e.getY()
 							- mousePt.y);
-					moveBlockViews(delta);
+					moveComponentsOnPanel(delta);
 					mousePt = e.getPoint();
 				}
 				repaint();
@@ -552,10 +566,10 @@ public class CircuitPanel extends JInternalFrame {
 	private SignalShape checkIfSignalOnPoint(Point mousePoint) {
 
 		SignalShape signal = null;
-		for (BlockView block : blocksInCircuit) {
+		for (BaseView block : blocksInCircuit) {
 			signal = block.checkIfPointIsSignal(mousePoint);
 			if (signal != null) {
-				break;
+				return signal;
 			}
 		}
 		return signal;
@@ -563,14 +577,14 @@ public class CircuitPanel extends JInternalFrame {
 
 	private void selectBlockViews(Rectangle selectionRectangle) {
 
-		for (BlockView b : blocksInCircuit) {
+		for (BaseView b : blocksInCircuit) {
 			b.setSelected(selectionRectangle.contains(b.getCenterPoint()));
 		}
 	}
 
-	private void moveBlockViews(Point delta) {
+	private void moveComponentsOnPanel(Point delta) {
 
-		for (BlockView b : blocksInCircuit) {
+		for (BaseView b : blocksInCircuit) {
 			if (b.isSelected()) {
 				b.moveBlockView(delta);
 			}
@@ -579,7 +593,7 @@ public class CircuitPanel extends JInternalFrame {
 
 	private void toggleSelection(Point point) {
 
-		for (BlockView b : blocksInCircuit) {
+		for (BaseView b : blocksInCircuit) {
 			if (b.contains(point)) {
 				b.setSelected(!b.isSelected());
 			}
@@ -588,7 +602,7 @@ public class CircuitPanel extends JInternalFrame {
 
 	private boolean selectOneBlock(Point point) {
 
-		for (BlockView b : blocksInCircuit) {
+		for (BaseView b : blocksInCircuit) {
 			if (b.contains(point)) {
 				if (!b.isSelected()) {
 					selectNoBlock();
@@ -602,7 +616,7 @@ public class CircuitPanel extends JInternalFrame {
 
 	public void selectNoBlock() {
 
-		for (BlockView b : blocksInCircuit) {
+		for (BaseView b : blocksInCircuit) {
 			b.setSelected(false);
 		}
 	}
@@ -624,5 +638,31 @@ public class CircuitPanel extends JInternalFrame {
 		BlockView bv = new BlockView(newBlock);
 		bv.moveBlockView(new Point(150, 150));
 		blocksInCircuit.add(bv);
+	}
+
+	/**
+	 * Adds new input view component to this circuit and stores it in list.
+	 * 
+	 * @see inputsInCircuit
+	 */
+	protected void addInputToCircuit() {
+
+		Input newInput = new Input(currentCircuit, "xyz");
+		InputSignalView i = new InputSignalView(newInput);
+		i.moveBlockView(new Point(150, 150));
+		blocksInCircuit.add(i);
+	}
+
+	/**
+	 * Adds new block view component to this circuit and stores it in list.
+	 * 
+	 * @see outputsInCircuit
+	 */
+	protected void addOutputToCircuit() {
+
+		Output newOutput = new Output(currentCircuit, "abc");
+		OutputSignalView o = new OutputSignalView(newOutput);
+		o.moveBlockView(new Point(150, 150));
+		blocksInCircuit.add(o);
 	}
 }

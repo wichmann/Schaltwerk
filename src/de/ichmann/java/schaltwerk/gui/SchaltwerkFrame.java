@@ -63,7 +63,6 @@ public class SchaltwerkFrame extends JFrame {
 			.getLogger(SchaltwerkFrame.class);
 
 	private JDesktopPane desktop;
-
 	private CircuitPanel mainCircuitFrame;
 
 	/**
@@ -206,11 +205,11 @@ public class SchaltwerkFrame extends JFrame {
 		});
 		fileMenu.add(menuItem);
 
-		// ===== file menu =====
-		JMenu blockMenu = new JMenu(
-				Messages.getString("SchaltwerkFrame.Blocks"));
-		blockMenu.setMnemonic(KeyEvent.VK_B);
-		menuBar.add(blockMenu);
+		// ===== circuit menu =====
+		JMenu circuitMenu = new JMenu(
+				Messages.getString("SchaltwerkFrame.Circuit"));
+		circuitMenu.setMnemonic(KeyEvent.VK_C);
+		menuBar.add(circuitMenu);
 
 		menuItem = new JMenuItem(
 				Messages.getString("SchaltwerkFrame.AddNewBlock"));
@@ -218,7 +217,18 @@ public class SchaltwerkFrame extends JFrame {
 		// ActionEvent.ALT_MASK));
 		menuItem.setAction(new AddNewBlock(Messages
 				.getString("SchaltwerkFrame.AddNewBlock")));
-		blockMenu.add(menuItem);
+		circuitMenu.add(menuItem);
+
+		menuItem = new JMenuItem(Messages.getString("SchaltwerkFrame.AddInput"));
+		menuItem.setAction(new AddInput(Messages
+				.getString("SchaltwerkFrame.AddInput")));
+		circuitMenu.add(menuItem);
+
+		menuItem = new JMenuItem(
+				Messages.getString("SchaltwerkFrame.AddOutput"));
+		menuItem.setAction(new AddOutput(Messages
+				.getString("SchaltwerkFrame.AddOutput")));
+		circuitMenu.add(menuItem);
 
 		// ===== help menu =====
 		JMenu helpMenu = new JMenu(Messages.getString("Help"));
@@ -230,6 +240,7 @@ public class SchaltwerkFrame extends JFrame {
 		return menuBar;
 	}
 
+	@SuppressWarnings("unused")
 	private JToolBar getToolBar() {
 
 		JToolBar toolBar = new JToolBar();
@@ -247,6 +258,7 @@ public class SchaltwerkFrame extends JFrame {
 		return toolBar;
 	}
 
+	@SuppressWarnings("unused")
 	private JToolBar getStatusBar() {
 
 		JToolBar statusBar = new JToolBar();
@@ -275,13 +287,10 @@ public class SchaltwerkFrame extends JFrame {
 	 */
 
 	/**
-	 * Quit the application.
+	 * Action that add a new block to the currently selected circuit frame.
+	 * 
+	 * @author Christian Wichmann
 	 */
-	private void handleQuit() {
-
-		System.exit(0);
-	}
-
 	private class AddNewBlock extends AbstractAction {
 
 		private static final long serialVersionUID = -94858533824980815L;
@@ -320,16 +329,79 @@ public class SchaltwerkFrame extends JFrame {
 					assert false : blockType;
 					break;
 				}
-				CircuitPanel currentCircuit = ((CircuitPanel) desktop
-						.getSelectedFrame());
-				if (currentCircuit == null) {
-					// if no circuit is selected choose first one?!
-					currentCircuit = (CircuitPanel) (desktop.getAllFrames()[0]);
-				}
-				currentCircuit.addBlockToCircuit(block);
-				currentCircuit.repaint();
+				CircuitPanel currentCircuitFrame = getCurrentCircuitFrame();
+				currentCircuitFrame.addBlockToCircuit(block);
+				currentCircuitFrame.repaint();
 			}
 		}
+	}
+
+	/**
+	 * Action that adds an input to currently selected circuit frame.
+	 * 
+	 * @author Christian Wichmann
+	 */
+	private class AddInput extends AbstractAction {
+
+		private static final long serialVersionUID = -1559694340993986205L;
+
+		public AddInput(final String name) {
+			super(name);
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			CircuitPanel currentCircuitFrame = getCurrentCircuitFrame();
+			currentCircuitFrame.addInputToCircuit();
+			currentCircuitFrame.repaint();
+		}
+	}
+
+	/**
+	 * Action that adds an output to currently selected circuit frame.
+	 * 
+	 * @author Christian Wichmann
+	 */
+	private class AddOutput extends AbstractAction {
+
+		private static final long serialVersionUID = -6922906001160190219L;
+
+		public AddOutput(final String name) {
+			super(name);
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			CircuitPanel currentCircuitFrame = getCurrentCircuitFrame();
+			currentCircuitFrame.addOutputToCircuit();
+			currentCircuitFrame.repaint();
+		}
+	}
+
+	/**
+	 * Returns currently selected circuit frame or the first one on this desktop
+	 * pane.
+	 * 
+	 * @return currently selected circuit frame
+	 */
+	private CircuitPanel getCurrentCircuitFrame() {
+
+		CircuitPanel currentCircuitFrame = ((CircuitPanel) desktop
+				.getSelectedFrame());
+		if (currentCircuitFrame == null) {
+			// if no circuit is selected choose first one?!
+			currentCircuitFrame = (CircuitPanel) (desktop.getAllFrames()[0]);
+		}
+
+		return currentCircuitFrame;
+	}
+
+	/**
+	 * Quit the application.
+	 */
+	private void handleQuit() {
+
+		System.exit(0);
 	}
 
 	public static void main(String[] args) {

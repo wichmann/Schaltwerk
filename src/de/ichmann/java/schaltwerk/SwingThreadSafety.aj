@@ -33,7 +33,7 @@ public aspect SwingThreadSafety {
 	pointcut swingMethods() : call(* javax.swing..*.*(..))
 		        || call(javax.swing..*.new(..));
 
-	pointcut extendsSwing() : call(* javax.swing.JComponent+.*(..))
+	pointcut extendsSwing() : target(javax.swing.JComponent+)
 		        || call(* javax.swing..*Model+.*(..))
 		        || call(* javax.swing.text.Document+.*(..));
 

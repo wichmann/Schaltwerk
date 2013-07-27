@@ -163,6 +163,9 @@ public class AddBlockDialog extends JDialog {
 		previewPanel = new PreviewPanel();
 		getContentPane().add(previewPanel, gc);
 
+		// show first block in preview
+		blockList.setSelectedIndex(0);
+
 		pack();
 		setLocationRelativeTo(null);
 	}
@@ -197,14 +200,12 @@ public class AddBlockDialog extends JDialog {
 			}
 			blockList = new JList<Blocks>(listModel);
 			blockList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-			blockList.setSelectedIndex(0);
 			blockList.addListSelectionListener(new ListSelectionListener() {
 				@Override
 				public void valueChanged(ListSelectionEvent e) {
 					previewPanel.setBlock(blockList.getSelectedValue());
 				}
 			});
-			// blockList.setVisibleRowCount(5);
 		}
 		return blockList;
 	}
