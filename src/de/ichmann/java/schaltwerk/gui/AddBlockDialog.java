@@ -57,6 +57,7 @@ public class AddBlockDialog extends JDialog {
 	private static final long serialVersionUID = -9112791773327630432L;
 
 	private JList<Blocks> blockList;
+	private Blocks chosenBlock = null;
 	private PreviewPanel previewPanel;
 
 	private class PreviewPanel extends JPanel {
@@ -76,7 +77,7 @@ public class AddBlockDialog extends JDialog {
 				g.setColor(ColorFactory.getInstance().getGridColor());
 				g.fillRect(0, 0, getWidth(), getHeight());
 				g.setColor(ColorFactory.getInstance().getForegroundColor());
-				blockView.moveBlockView(new Point(50, 50));
+				blockView.moveBlockView(new Point(50, 25));
 				blockView.drawBlock(g);
 			}
 		}
@@ -127,7 +128,7 @@ public class AddBlockDialog extends JDialog {
 		GridBagLayout layout = new GridBagLayout();
 		GridBagConstraints gc = new GridBagConstraints();
 		getContentPane().setLayout(layout);
-		
+
 		final int insets = 10;
 		gc.insets = new Insets(insets, insets, insets, insets);
 
@@ -234,6 +235,7 @@ public class AddBlockDialog extends JDialog {
 
 			@Override
 			public void actionPerformed(final ActionEvent e) {
+				chosenBlock = blockList.getSelectedValue();
 				setVisible(false);
 			}
 		});
@@ -244,6 +246,6 @@ public class AddBlockDialog extends JDialog {
 
 	public Blocks getChosenBlock() {
 
-		return blockList.getSelectedValue();
+		return chosenBlock;
 	}
 }

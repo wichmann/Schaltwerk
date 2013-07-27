@@ -39,6 +39,9 @@ import org.slf4j.LoggerFactory;
 
 import de.ichmann.java.schaltwerk.blocks.Block;
 import de.ichmann.java.schaltwerk.blocks.Input;
+import de.ichmann.java.schaltwerk.blocks.NAND;
+import de.ichmann.java.schaltwerk.blocks.NOR;
+import de.ichmann.java.schaltwerk.blocks.NOT;
 import de.ichmann.java.schaltwerk.blocks.Output;
 import de.ichmann.java.schaltwerk.blocks.Signal;
 
@@ -311,7 +314,9 @@ public class BlockView {
 							- PADDING, blockBounds.y + y);
 
 			// paint inverter circle for outputs starting with tilde
-			if (output.startsWith("~")) {
+			if (output.startsWith("~") || (getModel() instanceof NOR)
+					|| (getModel() instanceof NAND)
+					|| (getModel() instanceof NOT)) {
 
 				g2d.setColor(ColorFactory.getInstance().getBackgroundColor());
 				g2d.fillOval(blockBounds.x + blockViewSize.width - PADDING,
@@ -336,7 +341,7 @@ public class BlockView {
 	private void drawStrings(Graphics2D g2d) {
 
 		// paint block name
-		String blockName = getModel().getBlockType().toString();
+		String blockName = getModel().getBlockType().getScreenName();
 		g2d.drawString(blockName, blockBounds.x + blockViewSize.width / 2
 				- calculateFontSize(g2d, blockName).width / 2, blockBounds.y
 				+ HEADER_GAP / 2);
@@ -355,8 +360,9 @@ public class BlockView {
 
 	/**
 	 * Calculates size of a given string using a predefined font in the current
-	 * graphics context. (see
-	 * http://docs.oracle.com/javase/tutorial/2d/text/measuringtext.html)
+	 * graphics context.
+	 * 
+	 * (see http://docs.oracle.com/javase/tutorial/2d/text/measuringtext.html)
 	 * 
 	 * @param graphics
 	 *            current graphics context
@@ -448,7 +454,7 @@ public class BlockView {
 		// header
 		int width = inputWidth + WIDTH_GAP + outputWidth;
 		int headerWidth = SwingUtilities.computeStringWidth(fm, getModel()
-				.getBlockType().toString());
+				.getBlockType().getScreenName());
 		width = width < headerWidth ? headerWidth : width;
 		width += PADDING + PADDING + INTERNAL_PADDING + INTERNAL_PADDING;
 

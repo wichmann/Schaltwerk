@@ -22,13 +22,16 @@ import java.awt.Cursor;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JInternalFrame;
 import javax.swing.JPanel;
@@ -76,6 +79,10 @@ public class CircuitPanel extends JInternalFrame {
 	private SignalShape signalConnectionEnd = null;
 
 	private final List<BlockView> blocksInCircuit = new ArrayList<BlockView>();
+	private static final Map<Connection, Polygon> connectionLines = new HashMap<Connection, Polygon>();
+
+	// TODO use map to store all lines as polygons(?) and calculate them only
+	// when blocks are moved
 
 	// TODO Implement buffer rendering when necessary?!
 	// private final BufferedImage circuitImage;

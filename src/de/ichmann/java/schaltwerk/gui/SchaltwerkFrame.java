@@ -54,7 +54,6 @@ import de.ichmann.java.schaltwerk.blocks.OR;
  * etc.
  * 
  * @author Christian Wichmann
- * 
  */
 public class SchaltwerkFrame extends JFrame {
 
@@ -107,8 +106,8 @@ public class SchaltwerkFrame extends JFrame {
 		// setIconImage(new ImageIcon().getImage());
 		setSize(width, height);
 		setLocationRelativeTo(null);
-		setName("Schaltwerk");
-		setTitle("Schaltwerk");
+		setName(Messages.getString("Title"));
+		setTitle(Messages.getString("Title"));
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		setDefaultLookAndFeelDecorated(true);
 
@@ -174,13 +173,13 @@ public class SchaltwerkFrame extends JFrame {
 		JMenuBar menuBar = new JMenuBar();
 
 		// ===== file menu =====
-		JMenu fileMenu = new JMenu("File");
+		JMenu fileMenu = new JMenu(Messages.getString("SchaltwerkFrame.File"));
 		fileMenu.setMnemonic(KeyEvent.VK_F);
 		menuBar.add(fileMenu);
 
 		// Set up the first menu item.
-		JMenuItem menuItem = new JMenuItem("New");
-		menuItem.setMnemonic(KeyEvent.VK_N);
+		JMenuItem menuItem = new JMenuItem(
+				Messages.getString("SchaltwerkFrame.New"));
 		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N,
 				ActionEvent.ALT_MASK));
 		menuItem.setActionCommand("new");
@@ -195,8 +194,7 @@ public class SchaltwerkFrame extends JFrame {
 		fileMenu.addSeparator();
 
 		// Set up the second menu item.
-		menuItem = new JMenuItem("Quit");
-		menuItem.setMnemonic(KeyEvent.VK_Q);
+		menuItem = new JMenuItem(Messages.getString("SchaltwerkFrame.Quit"));
 		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q,
 				ActionEvent.ALT_MASK));
 		menuItem.setActionCommand("quit");
@@ -209,25 +207,24 @@ public class SchaltwerkFrame extends JFrame {
 		fileMenu.add(menuItem);
 
 		// ===== file menu =====
-		JMenu blockMenu = new JMenu("Blocks");
+		JMenu blockMenu = new JMenu(
+				Messages.getString("SchaltwerkFrame.Blocks"));
 		blockMenu.setMnemonic(KeyEvent.VK_B);
 		menuBar.add(blockMenu);
 
-		menuItem = new JMenuItem("Add new Block");
-		menuItem.setMnemonic(KeyEvent.VK_B);
-		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_B,
-				ActionEvent.ALT_MASK));
-		menuItem.setAction(new AddNewBlock("Add New Block"));
+		menuItem = new JMenuItem(
+				Messages.getString("SchaltwerkFrame.AddNewBlock"));
+		// menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_B,
+		// ActionEvent.ALT_MASK));
+		menuItem.setAction(new AddNewBlock(Messages
+				.getString("SchaltwerkFrame.AddNewBlock")));
 		blockMenu.add(menuItem);
 
 		// ===== help menu =====
-		JMenu helpMenu = new JMenu("Help");
+		JMenu helpMenu = new JMenu(Messages.getString("Help"));
 		helpMenu.setMnemonic(KeyEvent.VK_H);
 		menuBar.add(helpMenu);
-		menuItem = new JMenuItem("About");
-		menuItem.setMnemonic(KeyEvent.VK_A);
-		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A,
-				ActionEvent.ALT_MASK));
+		menuItem = new JMenuItem(Messages.getString("About"));
 		helpMenu.add(menuItem);
 
 		return menuBar;
@@ -266,8 +263,8 @@ public class SchaltwerkFrame extends JFrame {
 		mainCircuitFrame.setVisible(true);
 		desktop.add(mainCircuitFrame);
 		try {
-			mainCircuitFrame.setSelected(true);
 			mainCircuitFrame.setMaximum(true);
+			mainCircuitFrame.setSelected(true);
 		} catch (PropertyVetoException e) {
 			LOG.warn("Error encountered while selecting internal frame.");
 		}
@@ -289,7 +286,7 @@ public class SchaltwerkFrame extends JFrame {
 
 		private static final long serialVersionUID = -94858533824980815L;
 
-		public AddNewBlock(String name) {
+		public AddNewBlock(final String name) {
 			super(name);
 		}
 
@@ -298,33 +295,40 @@ public class SchaltwerkFrame extends JFrame {
 			AddBlockDialog d = new AddBlockDialog();
 			d.setVisible(true);
 			Blocks blockType = d.getChosenBlock();
-			Block block = null;
-			switch (blockType) {
-			case AND:
-				block = new AND(3);
-				break;
-			case NAND:
-				block = new NAND(3);
-				break;
-			case NOR:
-				block = new NOR(3);
-				break;
-			case NOT:
-				block = new NOT();
-				break;
-			case OR:
-				block = new OR(3);
-				break;
-			case RS_FLIPFLOP:
-				block = BlockFactory.getInstance().getRSFlipFLop(false);
-				break;
-			default:
-				assert false : blockType;
-				break;
+			if (blockType != null) {
+				Block block = null;
+				switch (blockType) {
+				case AND:
+					block = new AND(3);
+					break;
+				case NAND:
+					block = new NAND(3);
+					break;
+				case NOR:
+					block = new NOR(3);
+					break;
+				case NOT:
+					block = new NOT();
+					break;
+				case OR:
+					block = new OR(3);
+					break;
+				case RS_FLIPFLOP:
+					block = BlockFactory.getInstance().getRSFlipFLop(false);
+					break;
+				default:
+					assert false : blockType;
+					break;
+				}
+				CircuitPanel currentCircuit = ((CircuitPanel) desktop
+						.getSelectedFrame());
+				if (currentCircuit == null) {
+					// if no circuit is selected choose first one?!
+					currentCircuit = (CircuitPanel) (desktop.getAllFrames()[0]);
+				}
+				currentCircuit.addBlockToCircuit(block);
+				currentCircuit.repaint();
 			}
-			((CircuitPanel) desktop.getSelectedFrame())
-					.addBlockToCircuit(block);
-			((CircuitPanel) desktop.getSelectedFrame()).repaint();
 		}
 	}
 

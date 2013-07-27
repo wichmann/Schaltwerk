@@ -55,5 +55,62 @@ public enum Blocks {
 	 * Block with two outputs ("Q", "~Q") that can be set or reset through two
 	 * inputs ("S", "R"). One output has the inverted value of the other.
 	 */
-	RS_FLIPFLOP
+	RS_FLIPFLOP;
+
+	public String getLocalizedName() {
+
+		// TODO use i18n messages here!
+		String localizedName = "";
+		switch (values()[ordinal()]) {
+		case AND:
+			localizedName = "";
+			break;
+		case NAND:
+			localizedName = "";
+			break;
+		case NOR:
+			localizedName = "";
+			break;
+		case NOT:
+			localizedName = "";
+			break;
+		case OR:
+			localizedName = "";
+			break;
+		case RS_FLIPFLOP:
+			localizedName = "";
+			break;
+		default:
+			break;
+		}
+		return localizedName;
+	}
+
+	public String getScreenName() {
+
+		String screenName = "";
+		switch (values()[ordinal()]) {
+		case AND:
+			screenName = "&";
+			break;
+		case NAND:
+			screenName = "&";
+			break;
+		case NOR:
+			screenName = "≥1";
+			break;
+		case NOT:
+			screenName = "1";
+			break;
+		case OR:
+			screenName = "≥1";
+			break;
+		case RS_FLIPFLOP:
+			screenName = "RS";
+			break;
+		default:
+			break;
+		}
+		return screenName;
+	}
 }
