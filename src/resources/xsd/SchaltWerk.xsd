@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <xs:annotation>
+        <xs:documentation>XML schema for CompoundBlocks of SchaltWerk</xs:documentation>
+    </xs:annotation>
+
+    <!-- Top level element -->
+    <xs:element name="SchaltWerk">
+        <xs:complexType>
+            <xs:sequence>
+                <!-- Top level block -->
+                <xs:element name="CompoundBlock"  type="CompoundBlock"  minOccurs="1" maxOccurs="1"/>                
+                <!-- Signal mapping for whole file -->
+                <xs:element name="SignalMapping"  type="SignalMapping"  minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Block that may contain other CompoundBlocks or BaseBlocks -->
+    <xs:complexType name="CompoundBlock">
+        <xs:sequence>
+            <!-- Defining of IO -->
+            <xs:element name="in"            type="InType"  minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="out"           type="OutType" minOccurs="0" maxOccurs="unbounded"/>
+            <!-- Possible content. -->
+            <xs:element name="CompoundBlock" type="CompoundBlock" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="BaseBlock"     type="BaseBlock" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+
+        <!-- UUID to identify block -->
+        <xs:attribute name="uuid" type="xs:integer"/>
+    </xs:complexType>
+
+    <!-- Block that represents one of the base functions (and, or...) -->
+    <!-- TODO: maybe there should be types of every base function?! Might be needed to ensure number of ports (e.g. not 1-in 1-out). -->
+    <xs:complexType name="BaseBlock">
+        <xs:sequence>
+            <xs:element name="in"  type="InType"  minOccurs="0" maxOccurs="unbounded"/>
+            <!-- BaseBlocks only allow one output -->
+            <xs:element name="out" type="OutType" minOccurs="1" maxOccurs="1"/>
+        </xs:sequence>
+
+        <!-- Type of function (and,or,not...) -->
+        <xs:attribute name="type" type="xs:string"/>
+        <!-- UUID to identify block -->
+        <xs:attribute name="uuid" type="xs:integer"/>
+    </xs:complexType>
+
+    <!-- Type to define in port -->
+    <xs:complexType name="InType">
+        <xs:attribute name="name" type="xs:string"/>
+    </xs:complexType>
+
+    <!-- Type to define out port -->
+    <xs:complexType name="OutType">
+        <xs:attribute name="name" type="xs:string"/>
+    </xs:complexType>
+
+    <!-- Signal mapping for this whole file -->
+    <xs:complexType name="SignalMapping">
+        <xs:sequence>
+            <!-- Mapping of the ports -->
+            <xs:element name="Mapping"  type="Mapping"  minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Mapping for exactly two ports -->
+    <xs:complexType name="Mapping">
+        <!-- Ports are identified by block UUID and port name. e.g. "43_R" for block "43" port "R" -->
+        <xs:attribute name="from" type="xs:string"/>
+        <xs:attribute name="to"   type="xs:string"/>
+    </xs:complexType>
+
+</xs:schema>

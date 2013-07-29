@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<SchaltWerk>
+
+    <!-- Top level CompoundBlock -->
+    <CompoundBlock uuid="42">
+
+        <!-- IO Naming -->
+        <in  name = "R"  />
+        <in  name = "S"  />
+        <out name = "Q"  />
+        <out name = "~Q" />
+
+        <!-- Content of this CompoundBlock -> another CompoundBlock -->
+        <CompoundBlock uuid="43">
+            <in  name = "1" />
+            <in  name = "2" />
+            <out name = "0" />
+
+            <!-- No CompoundBlock is used here -->
+
+            <!-- No IO description for base blocks -->
+            <BaseBlock type="and" uuid="44">
+                <in  name = "1" />
+                <in  name = "2" />
+                <out name = "1" />
+            </BaseBlock>
+        </CompoundBlock>
+
+        <CompoundBlock uuid="53">
+            <in  name = "1" />
+            <in  name = "2" />
+            <out name = "0" />
+
+            <!-- No CompoundBlock is used here -->
+
+            <!-- No IO description for base blocks -->
+            <BaseBlock type="and" uuid="54">
+                <in  name = "1" />
+                <in  name = "2" />
+                <out name = "1" />
+            </BaseBlock>
+        </CompoundBlock>
+
+        <BaseBlock type="or" uuid="45">
+            <in  name = "1" />
+            <in  name = "2" />
+            <out name = "1" />
+        </BaseBlock>
+
+        <BaseBlock type="or" uuid="46">
+            <in  name = "1" />
+            <in  name = "2" />
+            <out name = "1" />
+        </BaseBlock>
+    </CompoundBlock>
+
+    <!-- IO Mapping -->
+    <SignalMapping>
+        <Mapping from="42_R" to="43_0" />
+        <Mapping from="42_R" to="43_0" />
+        <Mapping from="45_1" to="46_1" />
+    </SignalMapping>
+
+</SchaltWerk>
