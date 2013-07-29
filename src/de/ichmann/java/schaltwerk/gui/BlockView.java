@@ -32,6 +32,7 @@ import javax.swing.event.EventListenerList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.ichmann.java.schaltwerk.blocks.BaseBlock;
 import de.ichmann.java.schaltwerk.blocks.Block;
 import de.ichmann.java.schaltwerk.blocks.Input;
 import de.ichmann.java.schaltwerk.blocks.NAND;
@@ -215,8 +216,10 @@ public final class BlockView extends BaseView {
 		String[] inputList = getModel().inputList();
 		for (String input : inputList) {
 
-			g2d.drawString(input, blockBounds.x + PADDING + INTERNAL_PADDING,
-					blockBounds.y + y);
+			if (!(getModel() instanceof BaseBlock)) {
+				g2d.drawString(input, blockBounds.x + PADDING
+						+ INTERNAL_PADDING, blockBounds.y + y);
+			}
 			g2d.drawLine(blockBounds.x, blockBounds.y + y, blockBounds.x
 					+ PADDING, blockBounds.y + y);
 			y += SIGNAL_GAP;
@@ -226,11 +229,14 @@ public final class BlockView extends BaseView {
 		y = HEADER_GAP;
 		for (String output : getModel().outputList()) {
 
-			g2d.drawString(output,
-					blockBounds.x + blockViewSize.width - PADDING
-							- INTERNAL_PADDING
-							- calculateFontSize(g2d, output).width,
-					blockBounds.y + y);
+			if (!(getModel() instanceof BaseBlock)) {
+				g2d.drawString(
+						output,
+						blockBounds.x + blockViewSize.width - PADDING
+								- INTERNAL_PADDING
+								- calculateFontSize(g2d, output).width,
+						blockBounds.y + y);
+			}
 			g2d.drawLine(blockBounds.x + blockViewSize.width,
 					blockBounds.y + y, blockBounds.x + blockViewSize.width
 							- PADDING, blockBounds.y + y);
