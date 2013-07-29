@@ -26,11 +26,26 @@ public class NOT extends BaseBlock {
 	private static int notBlockCount = 0;
 
 	/**
-	 * Initializes a NOT block. This blocks have always only one input.
+	 * Initializes a NOT block. This blocks have always only one input. A valid
+	 * block id will be generated automatically.
 	 */
 	public NOT() {
 
 		super(generateBlockID(), 1);
+
+		setBlockType(Blocks.NOT);
+	}
+
+	/**
+	 * Initializes a NOT block with a given block id. This blocks have always
+	 * only one input.
+	 * 
+	 * @param blockID
+	 *            block identification
+	 */
+	public NOT(final String blockID) {
+
+		super(blockID, 1);
 
 		setBlockType(Blocks.NOT);
 	}

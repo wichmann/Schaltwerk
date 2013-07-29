@@ -32,14 +32,29 @@ public class OR extends BaseBlock {
 	private static int orBlockCount = 0;
 
 	/**
-	 * Initializes a OR block.
+	 * Initializes a OR block. A valid block id will be generated automatically.
 	 * 
 	 * @param inputs
 	 *            number of inputs
 	 */
-	public OR(int inputs) {
+	public OR(final int inputs) {
 
 		super(generateBlockID(), inputs);
+
+		setBlockType(Blocks.OR);
+	}
+
+	/**
+	 * Initializes a OR block with a given block id.
+	 * 
+	 * @param inputs
+	 *            number of inputs
+	 * @param blockID
+	 *            block identification
+	 */
+	public OR(final String blockID, final int inputs) {
+
+		super(blockID, inputs);
 
 		setBlockType(Blocks.OR);
 	}

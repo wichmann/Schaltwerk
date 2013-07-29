@@ -32,14 +32,30 @@ public class NOR extends BaseBlock {
 	private static int norBlockCount = 0;
 
 	/**
-	 * Initializes a NOR block.
+	 * Initializes a NOR block. A valid block id will be generated
+	 * automatically.
 	 * 
 	 * @param inputs
 	 *            number of inputs
 	 */
-	public NOR(int inputs) {
+	public NOR(final int inputs) {
 
 		super(generateBlockID(), inputs);
+
+		setBlockType(Blocks.NOR);
+	}
+
+	/**
+	 * Initializes a NOR block with a given block id.
+	 * 
+	 * @param inputs
+	 *            number of inputs
+	 * @param blockID
+	 *            block identification
+	 */
+	public NOR(final String blockID, final int inputs) {
+
+		super(blockID, inputs);
 
 		setBlockType(Blocks.NOR);
 	}

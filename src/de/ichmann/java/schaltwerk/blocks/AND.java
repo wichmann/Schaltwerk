@@ -32,14 +32,30 @@ public class AND extends BaseBlock {
 	private static int andBlockCount = 0;
 
 	/**
-	 * Initializes a AND block.
+	 * Initializes a AND block. A valid block id will be generated
+	 * automatically.
 	 * 
 	 * @param inputs
 	 *            number of inputs
 	 */
-	public AND(int inputs) {
+	public AND(final int inputs) {
 
 		super(generateBlockID(), inputs);
+
+		setBlockType(Blocks.AND);
+	}
+
+	/**
+	 * Initializes a AND block with a given block id.
+	 * 
+	 * @param inputs
+	 *            number of inputs
+	 * @param blockID
+	 *            block identification
+	 */
+	public AND(final String blockID, final int inputs) {
+
+		super(blockID, inputs);
 
 		setBlockType(Blocks.AND);
 	}
@@ -52,6 +68,9 @@ public class AND extends BaseBlock {
 	 */
 	private static String generateBlockID() {
 
+		/*
+		 * TODO generate UUID here!
+		 */
 		String s = "AND." + Integer.toString(andBlockCount);
 
 		andBlockCount += 1;
